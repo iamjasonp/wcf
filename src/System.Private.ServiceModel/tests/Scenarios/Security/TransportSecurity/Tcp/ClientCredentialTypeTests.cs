@@ -11,7 +11,6 @@ public static class Tcp_ClientCredentialTypeTests
     // Simple echo of a string using NetTcpBinding on both client and server with all default settings.
     // Default settings means SecurityMode is set to Transport.
     [Fact]
-    [ActiveIssue(81)]
     [OuterLoop]
     public static void SameBinding_DefaultSettings_EchoString()
     {
@@ -84,7 +83,6 @@ public static class Tcp_ClientCredentialTypeTests
 
     // Simple echo of a string using NetTcpBinding on both client and server with SecurityMode=Transport
     [Fact]
-    [ActiveIssue(81)]
     [OuterLoop]
     public static void SameBinding_SecurityModeTransport_EchoString()
     {

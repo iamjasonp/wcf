@@ -155,8 +155,40 @@ namespace System.ServiceModel.Channels
                 {
                     return new FramingConnectionDuplexSession(channel);
                 }
+                else
+                {
+                    return new SecureConnectionDuplexSession(channel);
+                }
+            }
+            class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
+            {
+                EndpointIdentity remoteIdentity;
 
-                throw ExceptionHelper.PlatformNotSupported("SecureConnectionDuplexSession is not supported.");
+                public SecureConnectionDuplexSession(FramingDuplexSessionChannel channel)
+                    : base(channel)
+                {
+                    // empty
+                }
+
+                EndpointIdentity ISecuritySession.RemoteIdentity
+                {
+                    get
+                    {
+                        if (remoteIdentity == null)
+                        {
+                            SecurityMessageProperty security = this.Channel.RemoteSecurity;
+                            if (security != null && security.ServiceSecurityContext != null &&
+                                security.ServiceSecurityContext.IdentityClaim != null &&
+                                security.ServiceSecurityContext.PrimaryIdentity != null)
+                            {
+                                this.remoteIdentity = EndpointIdentity.CreateIdentity(
+                                    security.ServiceSecurityContext.IdentityClaim);
+                            }
+                        }
+
+                        return this.remoteIdentity;
+                    }
+                }
             }
         }
     }

@@ -130,18 +130,15 @@ public class DuplexChannelFactoryTest
     }
 
     [Fact]
-    [ActiveIssue(81)]
     public static void CreateChannel_Using_NetTcpBinding_Defaults()
     {
         WcfDuplexServiceCallback callback = new WcfDuplexServiceCallback();
         InstanceContext context = new InstanceContext(callback);
         Binding binding = new NetTcpBinding();
         EndpointAddress endpoint = new EndpointAddress("net.tcp://not-an-endpoint");
-        Assert.Throws<ArgumentNullException>("endpointAddress", () =>
-        {
-            DuplexChannelFactory<IWcfDuplexService> factory = new DuplexChannelFactory<IWcfDuplexService>(context, binding, endpoint);
-            factory.CreateChannel();
-        });
+
+        DuplexChannelFactory<IWcfDuplexService> factory = new DuplexChannelFactory<IWcfDuplexService>(context, binding, endpoint);
+        factory.CreateChannel();
     }
 
     [Fact]
