@@ -11,7 +11,7 @@ public static class HttpsTests
 {
     // Client: CustomBinding set MessageVersion to Soap11
     // Server: BasicHttpsBinding default value is Soap11
-    [Fact]
+    //[Fact]
     [OuterLoop]
     public static void CrossBinding_Soap11_EchoString()
     {
@@ -47,7 +47,7 @@ public static class HttpsTests
     }
 
     // Client and Server bindings setup exactly the same using default settings.
-    [Fact]
+    //[Fact]
     [OuterLoop]
     public static void SameBinding_DefaultSettings_EchoString()
     {
@@ -83,7 +83,7 @@ public static class HttpsTests
     }
 
     // Client and Server bindings setup exactly the same using Soap11
-    [Fact]
+    //[Fact]
     [OuterLoop]
     public static void SameBinding_Soap11_EchoString()
     {
@@ -119,7 +119,7 @@ public static class HttpsTests
     }
 
     // Client and Server bindings setup exactly the same using Soap12
-    [Fact]
+    //[Fact]
     [OuterLoop]
     public static void SameBinding_Soap12_EchoString()
     {

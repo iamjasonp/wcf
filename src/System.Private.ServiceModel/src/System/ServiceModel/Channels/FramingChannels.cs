@@ -277,6 +277,22 @@ namespace System.ServiceModel.Channels
             await tcs.Task;
             connection.EndWrite();
 
+            // TODO: need async path for this. 
+            if (_upgrade != null)
+            {
+                StreamUpgradeInitiator upgradeInitiator = _upgrade.CreateUpgradeInitiator(this.RemoteAddress, this.Via);
+
+                upgradeInitiator.Open(timeoutHelper.RemainingTime());
+                if (!ConnectionUpgradeHelper.InitiateUpgrade(upgradeInitiator, ref connection, _decoder, this, ref timeoutHelper))
+                {
+                    ConnectionUpgradeHelper.DecodeFramingFault(_decoder, connection, this.Via, MessageEncoder.ContentType, ref timeoutHelper);
+                }
+
+                SetRemoteSecurity(upgradeInitiator);
+                upgradeInitiator.Close(timeoutHelper.RemainingTime());
+                connection.Write(ClientDuplexEncoder.PreambleEndBytes, 0, ClientDuplexEncoder.PreambleEndBytes.Length, true, timeoutHelper.RemainingTime());
+            }
+
             // read ACK
             tcs = new TaskCompletionSource<bool>();
             //ackBuffer
@@ -307,6 +323,21 @@ namespace System.ServiceModel.Channels
             _decoder = new ClientDuplexDecoder(0);
             byte[] ackBuffer = new byte[1];
             connection.Write(preamble.Array, preamble.Offset, preamble.Count, true, timeoutHelper.RemainingTime());
+
+            if (_upgrade != null)
+            {
+                StreamUpgradeInitiator upgradeInitiator = _upgrade.CreateUpgradeInitiator(this.RemoteAddress, this.Via);
+
+                upgradeInitiator.Open(timeoutHelper.RemainingTime());
+                if (!ConnectionUpgradeHelper.InitiateUpgrade(upgradeInitiator, ref connection, _decoder, this, ref timeoutHelper))
+                {
+                    ConnectionUpgradeHelper.DecodeFramingFault(_decoder, connection, this.Via, MessageEncoder.ContentType, ref timeoutHelper);
+                }
+
+                SetRemoteSecurity(upgradeInitiator);
+                upgradeInitiator.Close(timeoutHelper.RemainingTime());
+                connection.Write(ClientDuplexEncoder.PreambleEndBytes, 0, ClientDuplexEncoder.PreambleEndBytes.Length, true, timeoutHelper.RemainingTime());
+            }
 
             // read ACK
             int ackBytesRead = connection.Read(ackBuffer, 0, ackBuffer.Length, timeoutHelper.RemainingTime());
@@ -415,6 +446,11 @@ namespace System.ServiceModel.Channels
 
                 this.Connection = connection;
             }
+        }
+
+        void SetRemoteSecurity(StreamUpgradeInitiator upgradeInitiator)
+        {
+            this.RemoteSecurity = StreamSecurityUpgradeInitiator.GetRemoteSecurity(upgradeInitiator);
         }
 
         protected override void PrepareMessage(Message message)

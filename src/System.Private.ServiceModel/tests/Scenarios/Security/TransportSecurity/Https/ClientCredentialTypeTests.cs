@@ -18,7 +18,7 @@ public static class Https_ClientCredentialTypeTests
         s_password = "wcfSaysHell0World!";
     }
 
-    [Fact]
+    //[Fact]
     [OuterLoop]
     public static void BasicAuthentication_RoundTrips_Echo()
     {
@@ -54,7 +54,7 @@ public static class Https_ClientCredentialTypeTests
         Assert.True(errorBuilder.Length == 0, String.Format("Test Case: BasicAuthentication FAILED with the following errors: {0}", errorBuilder));
     }
 
-    [Fact]
+    //[Fact]
     [OuterLoop]
     public static void BasicAuthenticationInvalidPwd_throw_MessageSecurityException()
     {
@@ -83,7 +83,8 @@ public static class Https_ClientCredentialTypeTests
         Assert.True(exception.Message.ToLower().Contains(message), string.Format("Expected exception message to contain: '{0}', actual message is: '{1}'", message, exception.Message));
     }
 
-    [Fact]
+    //[Fact]
+    [ActiveIssue(224)]
     [OuterLoop]
     public static void BasicAuthenticationEmptyUser_throw_ArgumentException()
     {
@@ -108,7 +109,7 @@ public static class Https_ClientCredentialTypeTests
         Assert.True(exception.Message.ToLower().Contains(paraMessage), string.Format("Expected exception message to contain: '{0}', actual: '{1}'", paraMessage, exception.Message));
     }
 
-    [Fact]
+    //[Fact]
     [ActiveIssue(69)]
     [OuterLoop]
     public static void DigestAuthentication_RoundTrips_Echo()
@@ -135,7 +136,8 @@ public static class Https_ClientCredentialTypeTests
         Assert.True(errorBuilder.Length == 0, String.Format("Test Case: DigestAuthentication FAILED with the following errors: {0}", errorBuilder));
     }
 
-    [Fact]
+    //[Fact]
+    [ActiveIssue(5)]
     [OuterLoop]
     public static void NtlmAuthentication_RoundTrips_Echo()
     {
@@ -157,7 +159,7 @@ public static class Https_ClientCredentialTypeTests
     }
 
     // Issue 53 will enable us optional run this test on domain machines.
-    [Fact]
+    //[Fact]
     [ActiveIssue(53)]
     [OuterLoop]
     public static void WindowsAuthentication_RoundTrips_Echo()
