@@ -110,7 +110,7 @@ namespace System.ServiceModel.Channels
 
         public override StreamUpgradeProvider BuildClientStreamUpgradeProvider(BindingContext context)
         {
-            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityBindingElementn.BuildClientStreamUpgradeProvider is not supported.");
+            return SslStreamSecurityUpgradeProvider.CreateClientProvider(this, context);
         }
 
         public override StreamUpgradeProvider BuildServerStreamUpgradeProvider(BindingContext context)

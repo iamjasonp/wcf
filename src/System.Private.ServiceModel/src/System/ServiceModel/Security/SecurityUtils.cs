@@ -193,13 +193,25 @@ namespace System.ServiceModel.Security
         }
     }
 
-
-
     internal static class SecurityUtils
     {
         public const string Principal = "Principal";
         public const string Identities = "Identities";
         private static IIdentity s_anonymousIdentity;
+        private static X509SecurityTokenAuthenticator nonValidatingX509Authenticator;
+
+        internal static X509SecurityTokenAuthenticator NonValidatingX509Authenticator
+        {
+            get
+            {
+                if (nonValidatingX509Authenticator == null)
+                {
+                    nonValidatingX509Authenticator = new X509SecurityTokenAuthenticator(X509CertificateValidator.None);
+                }
+                return nonValidatingX509Authenticator;
+            }
+        }
+
         internal static IIdentity AnonymousIdentity
         {
             get

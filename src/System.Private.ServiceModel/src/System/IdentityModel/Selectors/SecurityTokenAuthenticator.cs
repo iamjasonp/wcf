@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.ObjectModel;
-using System.IdentityModel.Policy;
-using System.IdentityModel.Tokens;
-using System.Runtime.Diagnostics;
-using System.ServiceModel;
-using System.ServiceModel.Diagnostics.Application;
-
 namespace System.IdentityModel.Selectors
 {
+    using System.Collections.ObjectModel;
+    using System.IdentityModel.Policy;
+    using System.IdentityModel.Tokens;
+    using System.Runtime.Diagnostics;
+    using ServiceModel.Diagnostics.Application;
+    using ServiceModel;
+
     public abstract class SecurityTokenAuthenticator
     {
         protected SecurityTokenAuthenticator() { }
@@ -32,7 +32,6 @@ namespace System.IdentityModel.Selectors
             if (!CanValidateToken(token))
             {
                 // warning 56506: Parameter 'token' to this public method must be validated:  A null-dereference can occur here.
-#pragma warning suppress 56506
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenValidationException(SR.Format(SR.CannotValidateSecurityTokenType, this, token.GetType())));
             }
 

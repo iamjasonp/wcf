@@ -66,12 +66,14 @@ namespace System.ServiceModel.Channels
 
         public override StreamUpgradeProvider BuildClientStreamUpgradeProvider(BindingContext context)
         {
-            return new WindowsStreamSecurityUpgradeProvider(this, context, true);
+            throw new PlatformNotSupportedException("Not yet supported - WindowsStreamSecurity Client upgrade");
+            // return new WindowsStreamSecurityUpgradeProvider(this, context, true);
         }
 
         public override StreamUpgradeProvider BuildServerStreamUpgradeProvider(BindingContext context)
         {
-            return new WindowsStreamSecurityUpgradeProvider(this, context, false);
+            throw new PlatformNotSupportedException("Not yet supported - WindowsStreamSecurity Client upgrade");
+            // return new WindowsStreamSecurityUpgradeProvider(this, context, false);
         }
 
         public override T GetProperty<T>(BindingContext context)

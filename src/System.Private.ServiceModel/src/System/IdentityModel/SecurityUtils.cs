@@ -44,6 +44,15 @@ namespace System.IdentityModel
             }
         }
 
+        public static DateTime MinUtcDateTime
+        {
+            get
+            {
+                // + and -  TimeSpan.TicksPerDay is to compensate the DateTime.ParseExact (to localtime) overflow.
+                return new DateTime(DateTime.MinValue.Ticks + TimeSpan.TicksPerDay, DateTimeKind.Utc);
+            }
+        }
+
         internal static IIdentity CreateIdentity(string name, string authenticationType)
         {
             return new GenericIdentity(name, authenticationType);
