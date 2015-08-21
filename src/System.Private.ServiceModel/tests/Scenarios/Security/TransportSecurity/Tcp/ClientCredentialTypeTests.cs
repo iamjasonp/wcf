@@ -124,4 +124,44 @@ public static class Tcp_ClientCredentialTypeTests
 
         Assert.True(errorBuilder.Length == 0, "Test case FAILED with errors: " + errorBuilder.ToString());
     }
+
+    // Simple echo of a string using NetTcpBinding on both client and server with SecurityMode=Transport
+    [Fact]
+    // [ActiveIssue(81)]
+    [OuterLoop]
+    public static void SameBinding_SecurityModeTransport_ClientCredentialTypeCertificate_EchoString()
+    {
+        string variationDetails = "Client:: NetTcpBinding/SecurityMode = Transport\nServer:: NetTcpBinding/SecurityMode = Transport";
+        string testString = "Hello";
+        StringBuilder errorBuilder = new StringBuilder();
+        bool success = false;
+
+        try
+        {
+            NetTcpBinding binding = new NetTcpBinding();
+            binding.Security.Mode = SecurityMode.Transport;
+            binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
+
+            ChannelFactory<IWcfService> factory = new ChannelFactory<IWcfService>(binding, new EndpointAddress(Endpoints.Tcp_DefaultBinding_Address));
+            IWcfService serviceProxy = factory.CreateChannel();
+
+            string result = serviceProxy.Echo(testString);
+            success = string.Equals(result, testString);
+
+            if (!success)
+            {
+                errorBuilder.AppendLine(String.Format("    Error: expected response from service: '{0}' Actual was: '{1}'", testString, result));
+            }
+        }
+        catch (Exception ex)
+        {
+            errorBuilder.AppendLine(String.Format("    Error: Unexpected exception was caught while doing the basic echo test for variation...\n'{0}'\nException: {1}", variationDetails, ex.ToString()));
+            for (Exception innerException = ex.InnerException; innerException != null; innerException = innerException.InnerException)
+            {
+                errorBuilder.AppendLine(String.Format("Inner exception: {0}", innerException.ToString()));
+            }
+        }
+
+        Assert.True(errorBuilder.Length == 0, "Test case FAILED with errors: " + errorBuilder.ToString());
+    }
 }

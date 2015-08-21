@@ -125,9 +125,11 @@ namespace System.ServiceModel
             return true;
         }
 
-        // In the Win8 profile, some settings for the binding security are not supported.
         private void CheckSettings()
         {
+            // TODO: check for a runtime way to do this, there should be an AppDomain.IsAppXProcess method that tells us this
+#if FEATURE_NETNATIVE // In the Win8 profile, some settings for the binding security are not supported.
+                      
             NetTcpSecurity security = this.Security;
             if (security == null)
             {
@@ -165,6 +167,7 @@ namespace System.ServiceModel
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Transport.ClientCredentialType", transport.ClientCredentialType)));
             }
+#endif
         }
 
         public override BindingElementCollection CreateBindingElements()

@@ -72,7 +72,7 @@ namespace System.ServiceModel.Channels
 
         public override StreamUpgradeProvider BuildServerStreamUpgradeProvider(BindingContext context)
         {
-            throw new PlatformNotSupportedException("Not yet supported - WindowsStreamSecurity Client upgrade");
+            throw new PlatformNotSupportedException("Not yet supported - WindowsStreamSecurity Server upgrade");
             // return new WindowsStreamSecurityUpgradeProvider(this, context, false);
         }
 
