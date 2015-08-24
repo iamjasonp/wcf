@@ -13,7 +13,9 @@ using System.IdentityModel.Tokens;
 using System.Net;
 using System.Net.Security;
 using System.Runtime;
+using System.Security;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Diagnostics;
@@ -593,6 +595,108 @@ namespace System.ServiceModel.Security
 
             return derivationAlgorithm;
         }
+
+
+        internal static X509Certificate2 GetCertificateFromStore(StoreName storeName, StoreLocation storeLocation,
+            X509FindType findType, object findValue, EndpointAddress target)
+        {
+            X509Certificate2 certificate = GetCertificateFromStoreCore(storeName, storeLocation, findType, findValue, target, true);
+            if (certificate == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.CannotFindCert, storeName, storeLocation, findType, findValue)));
+
+            return certificate;
+        }
+
+        internal static bool TryGetCertificateFromStore(StoreName storeName, StoreLocation storeLocation,
+            X509FindType findType, object findValue, EndpointAddress target, out X509Certificate2 certificate)
+        {
+            certificate = GetCertificateFromStoreCore(storeName, storeLocation, findType, findValue, target, false);
+            return (certificate != null);
+        }
+
+        static X509Certificate2 GetCertificateFromStoreCore(StoreName storeName, StoreLocation storeLocation,
+            X509FindType findType, object findValue, EndpointAddress target, bool throwIfMultipleOrNoMatch)
+        {
+            if (findValue == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("findValue");
+            }
+
+            X509Store store = new X509Store(storeName, storeLocation);
+            X509Certificate2Collection certs = null;
+            try
+            {
+                store.Open(OpenFlags.ReadOnly);
+                certs = store.Certificates.Find(findType, findValue, false);
+                if (certs.Count == 1)
+                {
+                    return new X509Certificate2(certs[0].RawData);
+                }
+                if (throwIfMultipleOrNoMatch)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateCertificateLoadException(
+                        storeName, storeLocation, findType, findValue, target, certs.Count));
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            finally
+            {
+                SecurityUtils.ResetAllCertificates(certs);
+                store.Dispose();
+            }
+        }
+
+        static Exception CreateCertificateLoadException(StoreName storeName, StoreLocation storeLocation,
+            X509FindType findType, object findValue, EndpointAddress target, int certCount)
+        {
+            if (certCount == 0)
+            {
+                if (target == null)
+                {
+                    return new InvalidOperationException(SR.Format(SR.CannotFindCert, storeName, storeLocation, findType, findValue));
+                }
+                else
+                {
+                    return new InvalidOperationException(SR.Format(SR.CannotFindCertForTarget, storeName, storeLocation, findType, findValue, target));
+                }
+            }
+            else
+            {
+                if (target == null)
+                {
+                    return new InvalidOperationException(SR.Format(SR.FoundMultipleCerts, storeName, storeLocation, findType, findValue));
+                }
+                else
+                {
+                    return new InvalidOperationException(SR.Format(SR.FoundMultipleCertsForTarget, storeName, storeLocation, findType, findValue, target));
+                }
+            }
+        }
+
+
+        // This is the workaround, Since store.Certificates returns a full collection
+        // of certs in store.  These are holding native resources.
+        internal static void ResetAllCertificates(X509Certificate2Collection certificates)
+        {
+            if (certificates != null)
+            {
+                for (int i = 0; i < certificates.Count; ++i)
+                {
+                    ResetCertificate(certificates[i]);
+                }
+            }
+        }
+
+        internal static void ResetCertificate(X509Certificate2 certificate)
+        {
+            // Check that Dispose() and Reset() do the same thing
+            certificate.Dispose();
+        }
+
+
     }
     internal struct SecurityUniqueId
     {
