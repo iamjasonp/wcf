@@ -141,8 +141,9 @@ public static class Tcp_ClientCredentialTypeTests
             NetTcpBinding binding = new NetTcpBinding();
             binding.Security.Mode = SecurityMode.Transport;
             binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
-
+            
             ChannelFactory<IWcfService> factory = new ChannelFactory<IWcfService>(binding, new EndpointAddress(Endpoints.Tcp_DefaultBinding_Address));
+            
             IWcfService serviceProxy = factory.CreateChannel();
 
             string result = serviceProxy.Echo(testString);

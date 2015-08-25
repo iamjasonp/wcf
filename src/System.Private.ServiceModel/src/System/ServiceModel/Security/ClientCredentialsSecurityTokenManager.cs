@@ -83,9 +83,7 @@ namespace System.ServiceModel
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientCertificateNotProvidedOnClientCredentials)));
                 }
-                // TODO: jasonpa 
-                throw new PlatformNotSupportedException("Uncorrelated duplex case");
-                // result = new X509SecurityTokenProvider(parent.ClientCertificate.Certificate);
+                result = new X509SecurityTokenProvider(_parent.ClientCertificate.Certificate);
             }
             else if (tokenRequirement is InitiatorServiceModelSecurityTokenRequirement)
             {

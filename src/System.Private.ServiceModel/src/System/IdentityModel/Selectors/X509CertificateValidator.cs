@@ -85,7 +85,7 @@ namespace System.IdentityModel.Selectors
                 if (!chain.Build(certificate))
                 {
                     // TODO: jasonpa, check on this 
-                    throw new NotImplementedException("not real, need a real exception message");
+                    throw new NotImplementedException("not real, need a real exception message, old one nuked");
                     //throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenValidationException(SR.Format(SR.X509ChainBuildFail,
                     //    SecurityUtils.GetCertificateId(certificate), GetChainStatusInformation(chain.ChainStatus))));
                 }
