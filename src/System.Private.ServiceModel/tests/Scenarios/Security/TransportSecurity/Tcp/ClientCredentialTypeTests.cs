@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.Text;
 using Xunit;
 
@@ -138,11 +139,12 @@ public static class Tcp_ClientCredentialTypeTests
 
         try
         {
-            NetTcpBinding binding = new NetTcpBinding();
-            binding.Security.Mode = SecurityMode.Transport;
-            binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
+            CustomBinding binding = new CustomBinding(
+                new SslStreamSecurityBindingElement(),
+                new BinaryMessageEncodingBindingElement(),
+                new TcpTransportBindingElement());
             
-            ChannelFactory<IWcfService> factory = new ChannelFactory<IWcfService>(binding, new EndpointAddress(Endpoints.Tcp_DefaultBinding_Address));
+            ChannelFactory<IWcfService> factory = new ChannelFactory<IWcfService>(binding, new EndpointAddress(Endpoints.Tcp_CustomBinding_SslStreamSecurity_Address));
             
             IWcfService serviceProxy = factory.CreateChannel();
 
