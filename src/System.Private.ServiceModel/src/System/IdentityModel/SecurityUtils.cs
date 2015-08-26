@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IdentityModel.Claims;
 using System.IdentityModel.Policy;
 using System.Runtime;
+using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel;
 using System.Text;
@@ -163,6 +164,38 @@ namespace System.IdentityModel
         internal static void DisposeClaimSetsIfNecessary(ReadOnlyCollection<ClaimSet> claimSets)
         {
             throw ExceptionHelper.PlatformNotSupported();
+        }
+
+        internal static string GetCertificateId(X509Certificate2 certificate)
+        {
+            StringBuilder str = new StringBuilder(256);
+            AppendCertificateIdentityName(str, certificate);
+            return str.ToString();
+        }
+
+        internal static void AppendCertificateIdentityName(StringBuilder str, X509Certificate2 certificate)
+        {
+            string value = certificate.SubjectName.Name;
+            if (String.IsNullOrEmpty(value))
+            {
+                value = certificate.GetNameInfo(X509NameType.DnsName, false);
+                if (String.IsNullOrEmpty(value))
+                {
+                    value = certificate.GetNameInfo(X509NameType.SimpleName, false);
+                    if (String.IsNullOrEmpty(value))
+                    {
+                        value = certificate.GetNameInfo(X509NameType.EmailName, false);
+                        if (String.IsNullOrEmpty(value))
+                        {
+                            value = certificate.GetNameInfo(X509NameType.UpnName, false);
+                        }
+                    }
+                }
+            }
+            // Same format as X509Identity
+            str.Append(String.IsNullOrEmpty(value) ? "<x509>" : value);
+            str.Append("; ");
+            str.Append(certificate.Thumbprint);
         }
 
         internal static ReadOnlyCollection<IAuthorizationPolicy> CloneAuthorizationPoliciesIfNecessary(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)

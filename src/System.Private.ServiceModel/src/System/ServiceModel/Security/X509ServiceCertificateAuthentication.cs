@@ -1,25 +1,24 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.IdentityModel.Selectors;
+using System.Runtime;
+using System.Security.Cryptography.X509Certificates;
+
 namespace System.ServiceModel.Security
 {
-    using System.IdentityModel.Selectors;
-    using System.Runtime;
-    using System.Security.Cryptography.X509Certificates;
-    using System.ServiceModel;
-
     public sealed class X509ServiceCertificateAuthentication
     {
         internal const X509CertificateValidationMode DefaultCertificateValidationMode = X509CertificateValidationMode.ChainTrust;
         internal const X509RevocationMode DefaultRevocationMode = X509RevocationMode.Online;
         internal const StoreLocation DefaultTrustedStoreLocation = StoreLocation.CurrentUser;
-        static X509CertificateValidator defaultCertificateValidator;
+        private static X509CertificateValidator s_defaultCertificateValidator;
 
-        X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
-        X509RevocationMode revocationMode = DefaultRevocationMode;
-        StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
-        X509CertificateValidator customCertificateValidator = null;
-        bool isReadOnly;
+        private X509CertificateValidationMode _certificateValidationMode = DefaultCertificateValidationMode;
+        private X509RevocationMode _revocationMode = DefaultRevocationMode;
+        private StoreLocation _trustedStoreLocation = DefaultTrustedStoreLocation;
+        private X509CertificateValidator _customCertificateValidator = null;
+        private bool _isReadOnly;
 
         public X509ServiceCertificateAuthentication()
         {
@@ -27,25 +26,25 @@ namespace System.ServiceModel.Security
 
         internal X509ServiceCertificateAuthentication(X509ServiceCertificateAuthentication other)
         {
-            this.certificateValidationMode = other.certificateValidationMode;
-            this.customCertificateValidator = other.customCertificateValidator;
-            this.revocationMode = other.revocationMode;
-            this.trustedStoreLocation = other.trustedStoreLocation;
-            this.isReadOnly = other.isReadOnly;
+            _certificateValidationMode = other._certificateValidationMode;
+            _customCertificateValidator = other._customCertificateValidator;
+            _revocationMode = other._revocationMode;
+            _trustedStoreLocation = other._trustedStoreLocation;
+            _isReadOnly = other._isReadOnly;
         }
 
         internal static X509CertificateValidator DefaultCertificateValidator
         {
             get
             {
-                if (defaultCertificateValidator == null)
+                if (s_defaultCertificateValidator == null)
                 {
                     bool useMachineContext = DefaultTrustedStoreLocation == StoreLocation.LocalMachine;
                     X509ChainPolicy chainPolicy = new X509ChainPolicy();
                     chainPolicy.RevocationMode = DefaultRevocationMode;
-                    defaultCertificateValidator = X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
+                    s_defaultCertificateValidator = X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
                 }
-                return defaultCertificateValidator;
+                return s_defaultCertificateValidator;
             }
         }
 
@@ -53,13 +52,13 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.certificateValidationMode;
+                return _certificateValidationMode;
             }
             set
             {
                 X509CertificateValidationModeHelper.Validate(value);
                 ThrowIfImmutable();
-                this.certificateValidationMode = value;
+                _certificateValidationMode = value;
             }
         }
 
@@ -67,12 +66,12 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.revocationMode;
+                return _revocationMode;
             }
             set
             {
                 ThrowIfImmutable();
-                this.revocationMode = value;
+                _revocationMode = value;
             }
         }
 
@@ -80,12 +79,12 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.trustedStoreLocation;
+                return _trustedStoreLocation;
             }
             set
             {
                 ThrowIfImmutable();
-                this.trustedStoreLocation = value;
+                _trustedStoreLocation = value;
             }
         }
 
@@ -93,36 +92,36 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.customCertificateValidator;
+                return _customCertificateValidator;
             }
             set
             {
                 ThrowIfImmutable();
-                this.customCertificateValidator = value;
+                _customCertificateValidator = value;
             }
         }
 
         internal bool TryGetCertificateValidator(out X509CertificateValidator validator)
         {
             validator = null;
-            if (this.certificateValidationMode == X509CertificateValidationMode.None)
+            if (_certificateValidationMode == X509CertificateValidationMode.None)
             {
                 validator = X509CertificateValidator.None;
             }
-            else if (this.certificateValidationMode == X509CertificateValidationMode.PeerTrust)
+            else if (_certificateValidationMode == X509CertificateValidationMode.PeerTrust)
             {
                 throw ExceptionHelper.PlatformNotSupported("X509CertificateValidationMode.PeerTrust is not supported");
             }
-            else if (this.certificateValidationMode == X509CertificateValidationMode.Custom)
+            else if (_certificateValidationMode == X509CertificateValidationMode.Custom)
             {
-                validator = this.customCertificateValidator;
+                validator = _customCertificateValidator;
             }
             else
             {
-                bool useMachineContext = this.trustedStoreLocation == StoreLocation.LocalMachine;
+                bool useMachineContext = _trustedStoreLocation == StoreLocation.LocalMachine;
                 X509ChainPolicy chainPolicy = new X509ChainPolicy();
-                chainPolicy.RevocationMode = this.revocationMode;
-                if (this.certificateValidationMode == X509CertificateValidationMode.ChainTrust)
+                chainPolicy.RevocationMode = _revocationMode;
+                if (_certificateValidationMode == X509CertificateValidationMode.ChainTrust)
                 {
                     validator = X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
                 }
@@ -139,7 +138,7 @@ namespace System.ServiceModel.Security
             X509CertificateValidator result;
             if (!TryGetCertificateValidator(out result))
             {
-                Fx.Assert(this.customCertificateValidator == null, "");
+                Fx.Assert(_customCertificateValidator == null, "");
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.MissingCustomCertificateValidator)));
             }
             return result;
@@ -147,12 +146,12 @@ namespace System.ServiceModel.Security
 
         internal void MakeReadOnly()
         {
-            this.isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (this.isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }

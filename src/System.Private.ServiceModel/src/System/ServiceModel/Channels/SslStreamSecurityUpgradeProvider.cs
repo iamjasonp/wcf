@@ -1,58 +1,54 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
+using System.IdentityModel.Policy;
+using System.IdentityModel.Selectors;
+using System.IdentityModel.Tokens;
+using System.IO;
+using System.Net.Security;
+using System.Runtime;
+using System.Security.Authentication;
+using System.Security.Authentication.ExtendedProtection;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel.Description;
+using System.ServiceModel.Diagnostics.Application;
+using System.ServiceModel.Security;
+using System.ServiceModel.Security.Tokens;
+using System.Threading;
+
 namespace System.ServiceModel.Channels
 {
-    using System.Collections.ObjectModel;
-    using System.Diagnostics;
-    using System.IdentityModel.Policy;
-    using System.IdentityModel.Selectors;
-    using System.IdentityModel.Tokens;
-    using System.IO;
-    using System.Net.Security;
-    using System.Runtime;
-    using System.Runtime.Diagnostics;
-    using System.Security.Authentication;
-    using System.Security.Authentication.ExtendedProtection;
-    using System.Security.Cryptography.X509Certificates;
-    using System.ServiceModel;
-    using System.ServiceModel.Description;
-    using System.ServiceModel.Diagnostics;
-    using System.ServiceModel.Diagnostics.Application;
-    using System.ServiceModel.Security;
-    using System.ServiceModel.Security.Tokens;
-    using Threading;
-
-    class SslStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider, IStreamUpgradeChannelBindingProvider
+    internal class SslStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider, IStreamUpgradeChannelBindingProvider
     {
-        SecurityTokenAuthenticator clientCertificateAuthenticator;
-        SecurityTokenManager clientSecurityTokenManager;
-        SecurityTokenProvider serverTokenProvider;
-        EndpointIdentity identity;
-        IdentityVerifier identityVerifier;
-        X509Certificate2 serverCertificate;
-        bool requireClientCertificate;
-        string scheme;
-        SslProtocols _sslProtocols = SslProtocols.Ssl2 | SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12; 
-        bool enableChannelBinding;
+        private SecurityTokenAuthenticator _clientCertificateAuthenticator;
+        private SecurityTokenManager _clientSecurityTokenManager;
+        private SecurityTokenProvider _serverTokenProvider;
+        private EndpointIdentity _identity;
+        private IdentityVerifier _identityVerifier;
+        private X509Certificate2 _serverCertificate;
+        private bool _requireClientCertificate;
+        private string _scheme;
+        private SslProtocols _sslProtocols = SslProtocols.Ssl2 | SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+        private bool _enableChannelBinding;
 
-        SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenManager clientSecurityTokenManager, bool requireClientCertificate, string scheme, IdentityVerifier identityVerifier)
+        private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenManager clientSecurityTokenManager, bool requireClientCertificate, string scheme, IdentityVerifier identityVerifier)
             : base(timeouts)
         {
-            this.identityVerifier = identityVerifier;
-            this.scheme = scheme;
-            this.clientSecurityTokenManager = clientSecurityTokenManager;
-            this.requireClientCertificate = requireClientCertificate;
+            _identityVerifier = identityVerifier;
+            _scheme = scheme;
+            _clientSecurityTokenManager = clientSecurityTokenManager;
+            _requireClientCertificate = requireClientCertificate;
         }
 
-        SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenProvider serverTokenProvider, bool requireClientCertificate, SecurityTokenAuthenticator clientCertificateAuthenticator, string scheme, IdentityVerifier identityVerifier)
+        private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenProvider serverTokenProvider, bool requireClientCertificate, SecurityTokenAuthenticator clientCertificateAuthenticator, string scheme, IdentityVerifier identityVerifier)
             : base(timeouts)
         {
-            this.serverTokenProvider = serverTokenProvider;
-            this.requireClientCertificate = requireClientCertificate;
-            this.clientCertificateAuthenticator = clientCertificateAuthenticator;
-            this.identityVerifier = identityVerifier;
-            this.scheme = scheme;
+            _serverTokenProvider = serverTokenProvider;
+            _requireClientCertificate = requireClientCertificate;
+            _clientCertificateAuthenticator = clientCertificateAuthenticator;
+            _identityVerifier = identityVerifier;
+            _scheme = scheme;
         }
 
         public static SslStreamSecurityUpgradeProvider CreateClientProvider(
@@ -67,10 +63,10 @@ namespace System.ServiceModel.Channels
             SecurityTokenManager tokenManager = credentialProvider.CreateSecurityTokenManager();
 
             return new SslStreamSecurityUpgradeProvider(
-                context.Binding, 
-                tokenManager, 
-                bindingElement.RequireClientCertificate, 
-                context.Binding.Scheme, 
+                context.Binding,
+                tokenManager,
+                bindingElement.RequireClientCertificate,
+                context.Binding.Scheme,
                 bindingElement.IdentityVerifier);
         }
 
@@ -78,13 +74,12 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                if ((this.identity == null) && (this.serverCertificate != null))
+                if ((_identity == null) && (_serverCertificate != null))
                 {
-                    throw new PlatformNotSupportedException();
-                    // TODO: jasonpa
                     // this.identity = SecurityUtils.GetServiceCertificateIdentity(this.serverCertificate);
+                    throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider.Identity - server certificate");
                 }
-                return this.identity;
+                return _identity;
             }
         }
 
@@ -92,7 +87,7 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return this.identityVerifier;
+                return _identityVerifier;
             }
         }
 
@@ -100,7 +95,7 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return this.requireClientCertificate;
+                return _requireClientCertificate;
             }
         }
 
@@ -108,7 +103,7 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return this.serverCertificate;
+                return _serverCertificate;
             }
         }
 
@@ -116,14 +111,12 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                throw new PlatformNotSupportedException(); 
-                // TODO: jasonpa
-                //if (this.clientCertificateAuthenticator == null)
-                //{
-                //    this.clientCertificateAuthenticator = new X509SecurityTokenAuthenticator(X509ClientCertificateAuthentication.DefaultCertificateValidator);
-                //}
+                if (_clientCertificateAuthenticator == null)
+                {
+                    _clientCertificateAuthenticator = new X509SecurityTokenAuthenticator(X509ClientCertificateAuthentication.DefaultCertificateValidator);
+                }
 
-                //return this.clientCertificateAuthenticator;
+                return _clientCertificateAuthenticator;
             }
         }
 
@@ -131,13 +124,13 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return this.clientSecurityTokenManager;
+                return _clientSecurityTokenManager;
             }
         }
 
         public string Scheme
         {
-            get { return this.scheme; }
+            get { return _scheme; }
         }
 
         public SslProtocols SslProtocols
@@ -200,7 +193,7 @@ namespace System.ServiceModel.Channels
 
         void IChannelBindingProvider.EnableChannelBindingSupport()
         {
-            this.enableChannelBinding = true;
+            _enableChannelBinding = true;
         }
 
 
@@ -208,7 +201,7 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return this.enableChannelBinding;
+                return _enableChannelBinding;
             }
         }
 
@@ -226,54 +219,50 @@ namespace System.ServiceModel.Channels
 
         protected override void OnAbort()
         {
-            if (this.clientCertificateAuthenticator != null)
+            if (_clientCertificateAuthenticator != null)
             {
-                SecurityUtils.AbortTokenAuthenticatorIfRequired(this.clientCertificateAuthenticator);
+                SecurityUtils.AbortTokenAuthenticatorIfRequired(_clientCertificateAuthenticator);
             }
             CleanupServerCertificate();
         }
 
         protected override void OnClose(TimeSpan timeout)
         {
-            if (this.clientCertificateAuthenticator != null)
+            if (_clientCertificateAuthenticator != null)
             {
-                SecurityUtils.CloseTokenAuthenticatorIfRequired(this.clientCertificateAuthenticator, timeout);
+                SecurityUtils.CloseTokenAuthenticatorIfRequired(_clientCertificateAuthenticator, timeout);
             }
             CleanupServerCertificate();
         }
 
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            throw new PlatformNotSupportedException();
-            //return SecurityUtils.BeginCloseTokenAuthenticatorIfRequired(this.clientCertificateAuthenticator, timeout, callback, state);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
 
         protected override void OnEndClose(IAsyncResult result)
         {
-            throw new PlatformNotSupportedException();
-
-            //SecurityUtils.EndCloseTokenAuthenticatorIfRequired(result);
-            //CleanupServerCertificate();
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
 
-        void SetupServerCertificate(SecurityToken token)
+        private void SetupServerCertificate(SecurityToken token)
         {
             X509SecurityToken x509Token = token as X509SecurityToken;
             if (x509Token == null)
             {
-                SecurityUtils.AbortTokenProviderIfRequired(this.serverTokenProvider);
+                SecurityUtils.AbortTokenProviderIfRequired(_serverTokenProvider);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
-                    SR.InvalidTokenProvided, this.serverTokenProvider.GetType(), typeof(X509SecurityToken))));
+                    SR.InvalidTokenProvided, _serverTokenProvider.GetType(), typeof(X509SecurityToken))));
             }
-            this.serverCertificate = new X509Certificate2(x509Token.Certificate.RawData);
+            _serverCertificate = new X509Certificate2(x509Token.Certificate.RawData);
         }
 
-        void CleanupServerCertificate()
+        private void CleanupServerCertificate()
         {
-            if (this.serverCertificate != null)
+            if (_serverCertificate != null)
             {
-                this.serverCertificate.Dispose(); 
-                this.serverCertificate = null;
+                _serverCertificate.Dispose();
+                _serverCertificate = null;
             }
         }
 
@@ -284,268 +273,41 @@ namespace System.ServiceModel.Channels
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 SecurityUtils.OpenTokenAuthenticatorIfRequired(this.ClientCertificateAuthenticator, timeoutHelper.RemainingTime());
 
-                if (this.serverTokenProvider != null)
+                if (_serverTokenProvider != null)
                 {
-                    SecurityUtils.OpenTokenProviderIfRequired(this.serverTokenProvider, timeoutHelper.RemainingTime());
-                    SecurityToken token = this.serverTokenProvider.GetTokenAsync(cts.Token).GetAwaiter().GetResult();
+                    SecurityUtils.OpenTokenProviderIfRequired(_serverTokenProvider, timeoutHelper.RemainingTime());
+                    SecurityToken token = _serverTokenProvider.GetTokenAsync(cts.Token).GetAwaiter().GetResult();
                     SetupServerCertificate(token);
-                    SecurityUtils.CloseTokenProviderIfRequired(this.serverTokenProvider, timeoutHelper.RemainingTime());
-                    this.serverTokenProvider = null;
+                    SecurityUtils.CloseTokenProviderIfRequired(_serverTokenProvider, timeoutHelper.RemainingTime());
+                    _serverTokenProvider = null;
                 }
             }
         }
 
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException(); 
-            // return new OpenAsyncResult(this, timeout, callback, state);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
 
         protected override void OnEndOpen(IAsyncResult result)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException();
-            // OpenAsyncResult.End(result);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
-
-//        class OpenAsyncResult : AsyncResult
-//        {
-//            SslStreamSecurityUpgradeProvider parent;
-//            TimeoutHelper timeoutHelper;
-//            AsyncCallback onOpenTokenAuthenticator;
-//            AsyncCallback onOpenTokenProvider;
-//            AsyncCallback onGetToken;
-//            AsyncCallback onCloseTokenProvider;
-
-//            public OpenAsyncResult(SslStreamSecurityUpgradeProvider parent, TimeSpan timeout,
-//                AsyncCallback callback, object state)
-//                : base(callback, state)
-//            {
-//                this.parent = parent;
-//                this.timeoutHelper = new TimeoutHelper(timeout);
-
-
-
-//                // since we're at channel.Open and not per-message, minimize our statics overhead and leverage GC for our callbacks
-//                this.onOpenTokenAuthenticator = Fx.ThunkCallback(new AsyncCallback(OnOpenTokenAuthenticator));
-//                IAsyncResult result = SecurityUtils.BeginOpenTokenAuthenticatorIfRequired(parent.ClientCertificateAuthenticator,
-//                    timeoutHelper.RemainingTime(), onOpenTokenAuthenticator, this);
-
-//                if (!result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                if (HandleOpenAuthenticatorComplete(result))
-//                {
-//                    base.Complete(true);
-//                }
-//            }
-
-//            public static void End(IAsyncResult result)
-//            {
-//                AsyncResult.End<OpenAsyncResult>(result);
-//            }
-
-//            bool HandleOpenAuthenticatorComplete(IAsyncResult result)
-//            {
-//                SecurityUtils.EndOpenTokenAuthenticatorIfRequired(result);
-
-//                if (parent.serverTokenProvider == null)
-//                {
-//                    return true;
-//                }
-
-//                this.onOpenTokenProvider = Fx.ThunkCallback(new AsyncCallback(OnOpenTokenProvider));
-//                IAsyncResult openTokenProviderResult = SecurityUtils.BeginOpenTokenProviderIfRequired(
-//                    parent.serverTokenProvider, timeoutHelper.RemainingTime(), onOpenTokenProvider, this);
-
-//                if (!openTokenProviderResult.CompletedSynchronously)
-//                {
-//                    return false;
-//                }
-
-//                return HandleOpenTokenProviderComplete(openTokenProviderResult);
-//            }
-
-//            bool HandleOpenTokenProviderComplete(IAsyncResult result)
-//            {
-//                SecurityUtils.EndOpenTokenProviderIfRequired(result);
-//                this.onGetToken = Fx.ThunkCallback(new AsyncCallback(OnGetToken));
-
-//                IAsyncResult getTokenResult = parent.serverTokenProvider.BeginGetToken(timeoutHelper.RemainingTime(),
-//                    onGetToken, this);
-
-//                if (!getTokenResult.CompletedSynchronously)
-//                {
-//                    return false;
-//                }
-
-//                return HandleGetTokenComplete(getTokenResult);
-//            }
-
-//            bool HandleGetTokenComplete(IAsyncResult result)
-//            {
-//                SecurityToken token = parent.serverTokenProvider.EndGetToken(result);
-//                parent.SetupServerCertificate(token);
-//                this.onCloseTokenProvider = Fx.ThunkCallback(new AsyncCallback(OnCloseTokenProvider));
-//                IAsyncResult closeTokenProviderResult =
-//                    SecurityUtils.BeginCloseTokenProviderIfRequired(parent.serverTokenProvider, timeoutHelper.RemainingTime(),
-//                    onCloseTokenProvider, this);
-
-//                if (!closeTokenProviderResult.CompletedSynchronously)
-//                {
-//                    return false;
-//                }
-
-//                return HandleCloseTokenProviderComplete(closeTokenProviderResult);
-//            }
-
-//            bool HandleCloseTokenProviderComplete(IAsyncResult result)
-//            {
-//                SecurityUtils.EndCloseTokenProviderIfRequired(result);
-//                parent.serverTokenProvider = null;
-//                return true;
-//            }
-
-//            void OnOpenTokenAuthenticator(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleOpenAuthenticatorComplete(result);
-//                }
-//#pragma warning suppress 56500 // kennyw, transferring exception to another thread
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-
-//            void OnOpenTokenProvider(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleOpenTokenProviderComplete(result);
-//                }
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-
-//            void OnGetToken(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleGetTokenComplete(result);
-//                }
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-
-//            void OnCloseTokenProvider(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleCloseTokenProviderComplete(result);
-//                }
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-
-//        }
     }
 
-    class SslStreamSecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptorBase
+    internal class SslStreamSecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptorBase
     {
-        SslStreamSecurityUpgradeProvider parent;
-        SecurityMessageProperty clientSecurity;
+        private SslStreamSecurityUpgradeProvider _parent;
+        private SecurityMessageProperty _clientSecurity;
         // for audit
-        X509Certificate2 clientCertificate = null;
-        ChannelBinding channelBindingToken;
+        private X509Certificate2 _clientCertificate = null;
+        private ChannelBinding _channelBindingToken;
 
         public SslStreamSecurityUpgradeAcceptor(SslStreamSecurityUpgradeProvider parent)
             : base(FramingUpgradeString.SslOrTls)
         {
-            this.parent = parent;
-            this.clientSecurity = new SecurityMessageProperty();
+            _parent = parent;
+            _clientSecurity = new SecurityMessageProperty();
         }
 
         internal ChannelBinding ChannelBinding
@@ -553,7 +315,7 @@ namespace System.ServiceModel.Channels
             get
             {
                 Fx.Assert(this.IsChannelBindingSupportEnabled, "A request for the ChannelBinding is not permitted without enabling ChannelBinding first (through the IChannelBindingProvider interface)");
-                return this.channelBindingToken;
+                return _channelBindingToken;
             }
         }
 
@@ -561,7 +323,7 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return ((IChannelBindingProvider)parent).IsChannelBindingSupportEnabled;
+                return ((IChannelBindingProvider)_parent).IsChannelBindingSupportEnabled;
             }
         }
 
@@ -576,8 +338,8 @@ namespace System.ServiceModel.Channels
 
             try
             {
-                sslStream.AuthenticateAsServer(this.parent.ServerCertificate, this.parent.RequireClientCertificate,
-                    this.parent.SslProtocols, false);
+                sslStream.AuthenticateAsServer(_parent.ServerCertificate, _parent.RequireClientCertificate,
+                    _parent.SslProtocols, false);
             }
             catch (AuthenticationException exception)
             {
@@ -590,11 +352,11 @@ namespace System.ServiceModel.Channels
                     SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
             }
 
-            remoteSecurity = this.clientSecurity;
+            remoteSecurity = _clientSecurity;
 
             if (this.IsChannelBindingSupportEnabled)
             {
-                this.channelBindingToken = ChannelBindingUtility.GetToken(sslStream);
+                _channelBindingToken = ChannelBindingUtility.GetToken(sslStream);
             }
 
             return sslStream;
@@ -602,26 +364,19 @@ namespace System.ServiceModel.Channels
 
         protected override IAsyncResult OnBeginAcceptUpgrade(Stream stream, AsyncCallback callback, object state)
         {
-            throw new PlatformNotSupportedException(); 
-            // TODO: jasonpa
-            //AcceptUpgradeAsyncResult result = new AcceptUpgradeAsyncResult(this, callback, state);
-            //result.Begin(stream);
-            //return result;
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
 
         protected override Stream OnEndAcceptUpgrade(IAsyncResult result, out SecurityMessageProperty remoteSecurity)
         {
-            throw new PlatformNotSupportedException();
-
-            // TODO: jasonpa
-            // return AcceptUpgradeAsyncResult.End(result, out remoteSecurity, out this.channelBindingToken);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
 
         // callback from schannel
-        bool ValidateRemoteCertificate(object sender, X509Certificate certificate, X509Chain chain,
+        private bool ValidateRemoteCertificate(object sender, X509Certificate certificate, X509Chain chain,
             SslPolicyErrors sslPolicyErrors)
         {
-            if (this.parent.RequireClientCertificate)
+            if (_parent.RequireClientCertificate)
             {
                 if (certificate == null)
                 {
@@ -630,14 +385,14 @@ namespace System.ServiceModel.Channels
                 }
                 // Note: add ref to handle since the caller will reset the cert after the callback return.
                 X509Certificate2 certificate2 = new X509Certificate2(((X509Certificate2)certificate).RawData);
-                this.clientCertificate = certificate2;
+                _clientCertificate = certificate2;
                 try
                 {
                     SecurityToken token = new X509SecurityToken(certificate2, false);
-                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = this.parent.ClientCertificateAuthenticator.ValidateToken(token);
-                    this.clientSecurity = new SecurityMessageProperty();
-                    this.clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
-                    this.clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
+                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateToken(token);
+                    _clientSecurity = new SecurityMessageProperty();
+                    _clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
+                    _clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
                 }
                 catch (SecurityTokenException)
                 {
@@ -649,18 +404,18 @@ namespace System.ServiceModel.Channels
 
         public override SecurityMessageProperty GetRemoteSecurity()
         {
-            if (this.clientSecurity.TransportToken != null)
+            if (_clientSecurity.TransportToken != null)
             {
-                return this.clientSecurity;
+                return _clientSecurity;
             }
-            if (this.clientCertificate != null)
+            if (_clientCertificate != null)
             {
-                SecurityToken token = new X509SecurityToken(this.clientCertificate);
+                SecurityToken token = new X509SecurityToken(_clientCertificate);
                 ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.NonValidatingX509Authenticator.ValidateToken(token);
-                this.clientSecurity = new SecurityMessageProperty();
-                this.clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
-                this.clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
-                return this.clientSecurity;
+                _clientSecurity = new SecurityMessageProperty();
+                _clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
+                _clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
+                return _clientSecurity;
             }
             return base.GetRemoteSecurity();
         }
@@ -716,22 +471,22 @@ namespace System.ServiceModel.Channels
         //}
     }
 
-    class SslStreamSecurityUpgradeInitiator : StreamSecurityUpgradeInitiatorBase
+    internal class SslStreamSecurityUpgradeInitiator : StreamSecurityUpgradeInitiatorBase
     {
-        SslStreamSecurityUpgradeProvider parent;
-        SecurityMessageProperty serverSecurity;
-        SecurityTokenProvider clientCertificateProvider;
-        X509SecurityToken clientToken;
-        SecurityTokenAuthenticator serverCertificateAuthenticator;
-        ChannelBinding channelBindingToken;
+        private SslStreamSecurityUpgradeProvider _parent;
+        private SecurityMessageProperty _serverSecurity;
+        private SecurityTokenProvider _clientCertificateProvider;
+        private X509SecurityToken _clientToken;
+        private SecurityTokenAuthenticator _serverCertificateAuthenticator;
+        private ChannelBinding _channelBindingToken;
 
-        static LocalCertificateSelectionCallback clientCertificateSelectionCallback;
+        private static LocalCertificateSelectionCallback s_clientCertificateSelectionCallback;
 
         public SslStreamSecurityUpgradeInitiator(SslStreamSecurityUpgradeProvider parent,
             EndpointAddress remoteAddress, Uri via)
             : base(FramingUpgradeString.SslOrTls, remoteAddress, via)
         {
-            this.parent = parent;
+            _parent = parent;
 
             InitiatorServiceModelSecurityTokenRequirement serverCertRequirement = new InitiatorServiceModelSecurityTokenRequirement();
             serverCertRequirement.TokenType = SecurityTokenTypes.X509Certificate;
@@ -739,11 +494,11 @@ namespace System.ServiceModel.Channels
             serverCertRequirement.KeyUsage = SecurityKeyUsage.Exchange;
             serverCertRequirement.TargetAddress = remoteAddress;
             serverCertRequirement.Via = via;
-            serverCertRequirement.TransportScheme = this.parent.Scheme;
+            serverCertRequirement.TransportScheme = _parent.Scheme;
             serverCertRequirement.PreferSslCertificateAuthenticator = true;
 
             SecurityTokenResolver dummy;
-            this.serverCertificateAuthenticator = (parent.ClientSecurityTokenManager.CreateSecurityTokenAuthenticator(serverCertRequirement, out dummy));
+            _serverCertificateAuthenticator = (parent.ClientSecurityTokenManager.CreateSecurityTokenAuthenticator(serverCertRequirement, out dummy));
 
             if (parent.RequireClientCertificate)
             {
@@ -753,24 +508,24 @@ namespace System.ServiceModel.Channels
                 clientCertRequirement.KeyUsage = SecurityKeyUsage.Signature;
                 clientCertRequirement.TargetAddress = remoteAddress;
                 clientCertRequirement.Via = via;
-                clientCertRequirement.TransportScheme = this.parent.Scheme;
-                this.clientCertificateProvider = parent.ClientSecurityTokenManager.CreateSecurityTokenProvider(clientCertRequirement);
-                if (clientCertificateProvider == null)
+                clientCertRequirement.TransportScheme = _parent.Scheme;
+                _clientCertificateProvider = parent.ClientSecurityTokenManager.CreateSecurityTokenProvider(clientCertRequirement);
+                if (_clientCertificateProvider == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientCredentialsUnableToCreateLocalTokenProvider, clientCertRequirement)));
                 }
             }
         }
 
-        static LocalCertificateSelectionCallback ClientCertificateSelectionCallback
+        private static LocalCertificateSelectionCallback ClientCertificateSelectionCallback
         {
             get
             {
-                if (clientCertificateSelectionCallback == null)
+                if (s_clientCertificateSelectionCallback == null)
                 {
-                    clientCertificateSelectionCallback = new LocalCertificateSelectionCallback(SelectClientCertificate);
+                    s_clientCertificateSelectionCallback = new LocalCertificateSelectionCallback(SelectClientCertificate);
                 }
-                return clientCertificateSelectionCallback;
+                return s_clientCertificateSelectionCallback;
             }
         }
 
@@ -779,7 +534,7 @@ namespace System.ServiceModel.Channels
             get
             {
                 Fx.Assert(this.IsChannelBindingSupportEnabled, "A request for the ChannelBinding is not permitted without enabling ChannelBinding first (through the IChannelBindingProvider interface)");
-                return this.channelBindingToken;
+                return _channelBindingToken;
             }
         }
 
@@ -787,102 +542,83 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return ((IChannelBindingProvider)parent).IsChannelBindingSupportEnabled;
+                return ((IChannelBindingProvider)_parent).IsChannelBindingSupportEnabled;
             }
         }
 
-        IAsyncResult BaseBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
+        private IAsyncResult BaseBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
             return base.BeginOpen(timeout, callback, state);
         }
 
-        void BaseEndOpen(IAsyncResult result)
+        private void BaseEndOpen(IAsyncResult result)
         {
             base.EndOpen(result);
         }
 
         internal override IAsyncResult BeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException();
-            // return new OpenAsyncResult(this, timeout, callback, state);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator async path");
         }
 
         internal override void EndOpen(IAsyncResult result)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException();
-            //OpenAsyncResult.End(result);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator async path");
         }
 
         internal override void Open(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             base.Open(timeoutHelper.RemainingTime());
-            if (this.clientCertificateProvider != null)
+            if (_clientCertificateProvider != null)
             {
-                SecurityUtils.OpenTokenProviderIfRequired(this.clientCertificateProvider, timeoutHelper.RemainingTime());
+                SecurityUtils.OpenTokenProviderIfRequired(_clientCertificateProvider, timeoutHelper.RemainingTime());
                 using (CancellationTokenSource cts = new CancellationTokenSource(timeoutHelper.RemainingTime()))
                 {
-                    this.clientToken = (X509SecurityToken)this.clientCertificateProvider.GetTokenAsync(cts.Token).GetAwaiter().GetResult();
+                    _clientToken = (X509SecurityToken)_clientCertificateProvider.GetTokenAsync(cts.Token).GetAwaiter().GetResult();
                 }
             }
         }
 
-        IAsyncResult BaseBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
+        private IAsyncResult BaseBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
             return base.BeginClose(timeout, callback, state);
         }
 
-        void BaseEndClose(IAsyncResult result)
+        private void BaseEndClose(IAsyncResult result)
         {
             base.EndClose(result);
         }
 
         internal override IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException(); 
-            // return new CloseAsyncResult(this, timeout, callback, state);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator async path");
         }
 
         internal override void EndClose(IAsyncResult result)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException();
-            // CloseAsyncResult.End(result);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator async path");
         }
 
         internal override void Close(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             base.Close(timeoutHelper.RemainingTime());
-            if (this.clientCertificateProvider != null)
+            if (_clientCertificateProvider != null)
             {
-                SecurityUtils.CloseTokenProviderIfRequired(this.clientCertificateProvider, timeoutHelper.RemainingTime());
+                SecurityUtils.CloseTokenProviderIfRequired(_clientCertificateProvider, timeoutHelper.RemainingTime());
             }
         }
 
         protected override IAsyncResult OnBeginInitiateUpgrade(Stream stream, AsyncCallback callback, object state)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException();
-            //if (TD.SslOnInitiateUpgradeIsEnabled())
-            //{
-            //    TD.SslOnInitiateUpgrade();
-            //}
-
-            //InitiateUpgradeAsyncResult result = new InitiateUpgradeAsyncResult(this, callback, state);
-            //result.Begin(stream);
-            //return result;
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator async path");
         }
 
         protected override Stream OnEndInitiateUpgrade(IAsyncResult result,
             out SecurityMessageProperty remoteSecurity)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException();
-            // return InitiateUpgradeAsyncResult.End(result, out remoteSecurity, out this.channelBindingToken);
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator async path");
         }
 
         protected override Stream OnInitiateUpgrade(Stream stream, out SecurityMessageProperty remoteSecurity)
@@ -894,17 +630,17 @@ namespace System.ServiceModel.Channels
 
             X509CertificateCollection clientCertificates = null;
             LocalCertificateSelectionCallback selectionCallback = null;
-            if (this.clientToken != null)
+            if (_clientToken != null)
             {
                 clientCertificates = new X509CertificateCollection();
-                clientCertificates.Add(clientToken.Certificate);
+                clientCertificates.Add(_clientToken.Certificate);
                 selectionCallback = ClientCertificateSelectionCallback;
             }
 
             SslStream sslStream = new SslStream(stream, false, this.ValidateRemoteCertificate, selectionCallback);
             try
             {
-                sslStream.AuthenticateAsClient(string.Empty, clientCertificates, this.parent.SslProtocols, false);
+                sslStream.AuthenticateAsClient(string.Empty, clientCertificates, _parent.SslProtocols, false);
             }
             catch (SecurityTokenValidationException tokenValidationException)
             {
@@ -922,398 +658,26 @@ namespace System.ServiceModel.Channels
                     SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
             }
 
-            remoteSecurity = this.serverSecurity;
+            remoteSecurity = _serverSecurity;
 
             if (this.IsChannelBindingSupportEnabled)
             {
-                this.channelBindingToken = ChannelBindingUtility.GetToken(sslStream);
+                _channelBindingToken = ChannelBindingUtility.GetToken(sslStream);
             }
 
             return sslStream;
         }
 
-        static X509Certificate SelectClientCertificate(object sender, string targetHost,
+        private static X509Certificate SelectClientCertificate(object sender, string targetHost,
             X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
         {
             return localCertificates[0];
         }
 
-        bool ValidateRemoteCertificate(object sender, X509Certificate certificate, X509Chain chain,
+        private bool ValidateRemoteCertificate(object sender, X509Certificate certificate, X509Chain chain,
             SslPolicyErrors sslPolicyErrors)
         {
-            // Note: add ref to handle since the caller will reset the cert after the callback return.
-            X509Certificate2 certificate2 = new X509Certificate2(((X509Certificate2)certificate).RawData);
-            SecurityToken token = new X509SecurityToken(certificate2, false);
-            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = this.serverCertificateAuthenticator.ValidateToken(token);
-            this.serverSecurity = new SecurityMessageProperty();
-            this.serverSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
-            this.serverSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
-
-            AuthorizationContext authzContext = this.serverSecurity.ServiceSecurityContext.AuthorizationContext;
-
-            throw new PlatformNotSupportedException("this.parent.IdentityVerifier.EnsureOutgoingIdentity"); 
-            //this.parent.IdentityVerifier.EnsureOutgoingIdentity(this.RemoteAddress, this.Via, authzContext);
-            //return true;
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator.ValidateRemoteCertificate");
         }
-
-        //class InitiateUpgradeAsyncResult : StreamSecurityUpgradeInitiatorAsyncResult
-        //{
-        //    X509CertificateCollection clientCertificates;
-        //    SslStreamSecurityUpgradeInitiator initiator;
-        //    LocalCertificateSelectionCallback selectionCallback;
-        //    SslStream sslStream;
-        //    ChannelBinding channelBindingToken;
-
-        //    public InitiateUpgradeAsyncResult(SslStreamSecurityUpgradeInitiator initiator, AsyncCallback callback,
-        //        object state)
-        //        : base(callback, state)
-        //    {
-        //        this.initiator = initiator;
-        //        if (initiator.clientToken != null)
-        //        {
-        //            this.clientCertificates = new X509CertificateCollection();
-        //            this.clientCertificates.Add(initiator.clientToken.Certificate);
-        //            this.selectionCallback = ClientCertificateSelectionCallback;
-        //        }
-        //    }
-
-        //    protected override IAsyncResult OnBeginAuthenticateAsClient(Stream stream, AsyncCallback callback)
-        //    {
-        //        this.sslStream = new SslStream(stream, false, this.initiator.ValidateRemoteCertificate,
-        //            this.selectionCallback);
-
-        //        try
-        //        {
-        //            return this.sslStream.BeginAuthenticateAsClient(string.Empty, this.clientCertificates,
-        //                this.initiator.parent.SslProtocols, false, callback, this);
-        //        }
-        //        catch (SecurityTokenValidationException tokenValidationException)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(tokenValidationException.Message,
-        //                tokenValidationException));
-        //        }
-        //    }
-
-        //    protected override Stream OnCompleteAuthenticateAsClient(IAsyncResult result)
-        //    {
-        //        try
-        //        {
-        //            this.sslStream.EndAuthenticateAsClient(result);
-        //        }
-        //        catch (SecurityTokenValidationException tokenValidationException)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(tokenValidationException.Message,
-        //                tokenValidationException));
-        //        }
-
-        //        if (this.initiator.IsChannelBindingSupportEnabled)
-        //        {
-        //            this.channelBindingToken = ChannelBindingUtility.GetToken(this.sslStream);
-        //        }
-
-        //        return this.sslStream;
-        //    }
-
-        //    protected override SecurityMessageProperty ValidateCreateSecurity()
-        //    {
-        //        return this.initiator.serverSecurity;
-        //    }
-
-        //    public static Stream End(IAsyncResult result, out SecurityMessageProperty remoteSecurity, out ChannelBinding channelBinding)
-        //    {
-        //        Stream stream = StreamSecurityUpgradeInitiatorAsyncResult.End(result, out remoteSecurity);
-        //        channelBinding = ((InitiateUpgradeAsyncResult)result).channelBindingToken;
-        //        return stream;
-        //    }
-        //}
-
-//        class OpenAsyncResult : AsyncResult
-//        {
-//            SslStreamSecurityUpgradeInitiator parent;
-//            TimeoutHelper timeoutHelper;
-//            AsyncCallback onBaseOpen;
-//            AsyncCallback onOpenTokenProvider;
-//            AsyncCallback onGetClientToken;
-
-//            public OpenAsyncResult(SslStreamSecurityUpgradeInitiator parent, TimeSpan timeout,
-//                AsyncCallback callback, object state)
-//                : base(callback, state)
-//            {
-//                this.parent = parent;
-//                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-
-//                // since we're at channel.Open and not per-message, minimize our statics overhead and leverage GC for our callback
-//                this.onBaseOpen = Fx.ThunkCallback(new AsyncCallback(OnBaseOpen));
-//                if (parent.clientCertificateProvider != null)
-//                {
-//                    this.onOpenTokenProvider = Fx.ThunkCallback(new AsyncCallback(OnOpenTokenProvider));
-//                    this.onGetClientToken = Fx.ThunkCallback(new AsyncCallback(OnGetClientToken));
-//                }
-//                IAsyncResult result = parent.BaseBeginOpen(timeoutHelper.RemainingTime(), onBaseOpen, this);
-
-//                if (!result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                if (HandleBaseOpenComplete(result))
-//                {
-//                    base.Complete(true);
-//                }
-//            }
-
-//            public static void End(IAsyncResult result)
-//            {
-//                AsyncResult.End<OpenAsyncResult>(result);
-//            }
-
-//            bool HandleBaseOpenComplete(IAsyncResult result)
-//            {
-//                parent.BaseEndOpen(result);
-//                if (parent.clientCertificateProvider == null)
-//                {
-//                    return true;
-//                }
-
-//                IAsyncResult openTokenProviderResult = SecurityUtils.BeginOpenTokenProviderIfRequired(
-//                    parent.clientCertificateProvider, timeoutHelper.RemainingTime(), onOpenTokenProvider, this);
-
-//                if (!openTokenProviderResult.CompletedSynchronously)
-//                {
-//                    return false;
-//                }
-
-//                return HandleOpenTokenProviderComplete(openTokenProviderResult);
-//            }
-
-//            bool HandleOpenTokenProviderComplete(IAsyncResult result)
-//            {
-//                SecurityUtils.EndOpenTokenProviderIfRequired(result);
-//                IAsyncResult getTokenResult = parent.clientCertificateProvider.BeginGetToken(timeoutHelper.RemainingTime(),
-//                    onGetClientToken, this);
-
-//                if (!getTokenResult.CompletedSynchronously)
-//                {
-//                    return false;
-//                }
-
-//                return HandleGetTokenComplete(getTokenResult);
-//            }
-
-//            bool HandleGetTokenComplete(IAsyncResult result)
-//            {
-//                parent.clientToken = (X509SecurityToken)parent.clientCertificateProvider.EndGetToken(result);
-//                return true;
-//            }
-
-//            void OnBaseOpen(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleBaseOpenComplete(result);
-//                }
-//#pragma warning suppress 56500 // kennyw, transferring exception to another thread
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-
-//            void OnOpenTokenProvider(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleOpenTokenProviderComplete(result);
-//                }
-//#pragma warning suppress 56500 // kennyw, transferring exception to another thread
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-
-//            void OnGetClientToken(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleGetTokenComplete(result);
-//                }
-//#pragma warning suppress 56500 // kennyw, transferring exception to another thread
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-//        }
-
-//        class CloseAsyncResult : AsyncResult
-//        {
-//            SslStreamSecurityUpgradeInitiator parent;
-//            TimeoutHelper timeoutHelper;
-//            AsyncCallback onBaseClose;
-//            AsyncCallback onCloseTokenProvider;
-
-//            public CloseAsyncResult(SslStreamSecurityUpgradeInitiator parent, TimeSpan timeout,
-//                AsyncCallback callback, object state)
-//                : base(callback, state)
-//            {
-//                this.parent = parent;
-//                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-
-//                // since we're at channel.Open and not per-message, minimize our statics overhead and leverage GC for our callback
-//                this.onBaseClose = Fx.ThunkCallback(new AsyncCallback(OnBaseClose));
-//                if (parent.clientCertificateProvider != null)
-//                {
-//                    this.onCloseTokenProvider = Fx.ThunkCallback(new AsyncCallback(OnCloseTokenProvider));
-//                }
-//                IAsyncResult result = parent.BaseBeginClose(timeoutHelper.RemainingTime(), onBaseClose, this);
-
-//                if (!result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                if (HandleBaseCloseComplete(result))
-//                {
-//                    base.Complete(true);
-//                }
-//            }
-
-//            public static void End(IAsyncResult result)
-//            {
-//                AsyncResult.End<CloseAsyncResult>(result);
-//            }
-
-//            bool HandleBaseCloseComplete(IAsyncResult result)
-//            {
-//                parent.BaseEndClose(result);
-//                if (parent.clientCertificateProvider == null)
-//                {
-//                    return true;
-//                }
-
-//                IAsyncResult closeTokenProviderResult = SecurityUtils.BeginCloseTokenProviderIfRequired(
-//                    parent.clientCertificateProvider, timeoutHelper.RemainingTime(), onCloseTokenProvider, this);
-
-//                if (!closeTokenProviderResult.CompletedSynchronously)
-//                {
-//                    return false;
-//                }
-
-//                SecurityUtils.EndCloseTokenProviderIfRequired(closeTokenProviderResult);
-//                return true;
-//            }
-
-//            void OnBaseClose(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                bool completeSelf = false;
-//                try
-//                {
-//                    completeSelf = this.HandleBaseCloseComplete(result);
-//                }
-//#pragma warning suppress 56500 // kennyw, transferring exception to another thread
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completeSelf = true;
-//                    completionException = e;
-//                }
-
-//                if (completeSelf)
-//                {
-//                    base.Complete(false, completionException);
-//                }
-//            }
-
-//            void OnCloseTokenProvider(IAsyncResult result)
-//            {
-//                if (result.CompletedSynchronously)
-//                {
-//                    return;
-//                }
-
-//                Exception completionException = null;
-//                try
-//                {
-//                    SecurityUtils.EndCloseTokenProviderIfRequired(result);
-//                }
-//#pragma warning suppress 56500 // kennyw, transferring exception to another thread
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                    {
-//                        throw;
-//                    }
-
-//                    completionException = e;
-//                }
-
-//                base.Complete(false, completionException);
-//            }
-//        }
     }
 }

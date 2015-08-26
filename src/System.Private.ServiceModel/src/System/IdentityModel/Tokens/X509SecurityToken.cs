@@ -1,25 +1,26 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel;
+
 namespace System.IdentityModel.Tokens
 {
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Security.Cryptography.X509Certificates;
-    using ServiceModel;
-
     public class X509SecurityToken : SecurityToken, IDisposable
     {
-        string id;
-        X509Certificate2 certificate;
-        DateTime effectiveTime = SecurityUtils.MaxUtcDateTime;
-        DateTime expirationTime = SecurityUtils.MinUtcDateTime;
-        bool disposed = false;
-        bool disposable;
+        private string _id;
+        private X509Certificate2 _certificate;
+        private ReadOnlyCollection<SecurityKey> _securityKeys;
+        private DateTime _effectiveTime = SecurityUtils.MaxUtcDateTime;
+        private DateTime _expirationTime = SecurityUtils.MinUtcDateTime;
+        private bool _disposed = false;
+        private bool _disposable;
 
         public X509SecurityToken(X509Certificate2 certificate)
-            : this(certificate, SecurityUniqueId.Create().Value) 
-        { 
+            : this(certificate, SecurityUniqueId.Create().Value)
+        {
         }
 
         public X509SecurityToken(X509Certificate2 certificate, string id)
@@ -49,80 +50,79 @@ namespace System.IdentityModel.Tokens
             if (id == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
 
-            this.id = id;
+            _id = id;
 
-            this.certificate = clone ? new X509Certificate2(certificate.RawData) : certificate;
+            _certificate = clone ? new X509Certificate2(certificate.RawData) : certificate;
             // if the cert needs to be cloned then the token owns the clone and should dispose it
-            this.disposable = clone || disposable;
+            _disposable = clone || disposable;
         }
 
         public override string Id
         {
-            get { return this.id; }
+            get { return _id; }
         }
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys
         {
             get
             {
-                // TODO: jasonpa
-                throw new PlatformNotSupportedException(); 
-                //ThrowIfDisposed();
-                //if (this.securityKeys == null)
-                //{
-                //    List<SecurityKey> temp = new List<SecurityKey>(1);
-                //    temp.Add(new X509AsymmetricSecurityKey(this.certificate));
-                //    this.securityKeys = temp.AsReadOnly();
-                //}
-                //return this.securityKeys;
+                ThrowIfDisposed();
+                if (_securityKeys == null)
+                {
+                    throw ExceptionHelper.PlatformNotSupported("X509SecurityToken.SecurityKeys");
+                    // List<SecurityKey> temp = new List<SecurityKey>(1);
+                    // temp.Add(new X509AsymmetricSecurityKey(_certificate));
+                    // _securityKeys = temp.AsReadOnly();
+                }
+                return _securityKeys;
             }
         }
 
         public override DateTime ValidFrom
         {
-            get 
+            get
             {
                 ThrowIfDisposed();
-                if (this.effectiveTime == SecurityUtils.MaxUtcDateTime)
-                    this.effectiveTime = this.certificate.NotBefore.ToUniversalTime();
-                return this.effectiveTime;
+                if (_effectiveTime == SecurityUtils.MaxUtcDateTime)
+                    _effectiveTime = _certificate.NotBefore.ToUniversalTime();
+                return _effectiveTime;
             }
         }
 
         public override DateTime ValidTo
         {
-            get 
+            get
             {
                 ThrowIfDisposed();
-                if (this.expirationTime == SecurityUtils.MinUtcDateTime)
-                    this.expirationTime = this.certificate.NotAfter.ToUniversalTime();
-                return this.expirationTime;
+                if (_expirationTime == SecurityUtils.MinUtcDateTime)
+                    _expirationTime = _certificate.NotAfter.ToUniversalTime();
+                return _expirationTime;
             }
         }
 
         public X509Certificate2 Certificate
         {
-            get 
+            get
             {
                 ThrowIfDisposed();
-                return this.certificate;
+                return _certificate;
             }
         }
-        
+
         public virtual void Dispose()
         {
-            if (this.disposable && !this.disposed)
+            if (_disposable && !_disposed)
             {
-                this.disposed = true;
+                _disposed = true;
 
-                this.certificate.Dispose();
-                this.certificate = null; 
+                _certificate.Dispose();
+                _certificate = null;
             }
         }
 
         protected void ThrowIfDisposed()
         {
-            if (this.disposed)
+            if (_disposed)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(this.GetType().FullName));
             }
