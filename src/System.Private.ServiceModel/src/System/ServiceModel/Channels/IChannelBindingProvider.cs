@@ -3,10 +3,7 @@
 
 namespace System.ServiceModel.Channels
 {
-    using System;
-    using System.Security.Authentication.ExtendedProtection;
-
-    interface IChannelBindingProvider
+    internal interface IChannelBindingProvider
     {
         void EnableChannelBindingSupport();
         bool IsChannelBindingSupportEnabled { get; }

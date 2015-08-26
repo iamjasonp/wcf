@@ -3,7 +3,7 @@
 
 namespace System.IdentityModel.Selectors
 {
-    class X509CertificateChain
+    internal class X509CertificateChain
     {
         public const uint DefaultChainPolicyOID = 0x1; // CAPI.CERT_CHAIN_POLICY_BASE
     }

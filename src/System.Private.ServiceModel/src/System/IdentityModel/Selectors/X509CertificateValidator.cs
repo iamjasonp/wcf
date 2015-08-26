@@ -1,34 +1,35 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.IdentityModel.Configuration;
+using System.IdentityModel.Tokens;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel;
+using System.Text;
+
 namespace System.IdentityModel.Selectors
 {
-    using System.IdentityModel.Configuration;
-    using System.Security.Cryptography.X509Certificates;
-    using Text;
-    using ServiceModel;
-
     public abstract class X509CertificateValidator : ICustomIdentityConfiguration
     {
-        static X509CertificateValidator chainTrust;
-        static X509CertificateValidator none;
+        private static X509CertificateValidator s_chainTrust;
+        private static X509CertificateValidator s_none;
 
         public static X509CertificateValidator None
         {
             get
             {
-                if (none == null)
-                    none = new NoneX509CertificateValidator();
-                return none;
+                if (s_none == null)
+                    s_none = new NoneX509CertificateValidator();
+                return s_none;
             }
         }
         public static X509CertificateValidator ChainTrust
         {
             get
             {
-                if (chainTrust == null)
-                    chainTrust = new ChainTrustValidator();
-                return chainTrust;
+                if (s_chainTrust == null)
+                    s_chainTrust = new ChainTrustValidator();
+                return s_chainTrust;
             }
         }
 
@@ -41,7 +42,7 @@ namespace System.IdentityModel.Selectors
 
         public abstract void Validate(X509Certificate2 certificate);
 
-        class NoneX509CertificateValidator : X509CertificateValidator
+        private class NoneX509CertificateValidator : X509CertificateValidator
         {
             public override void Validate(X509Certificate2 certificate)
             {
@@ -50,11 +51,11 @@ namespace System.IdentityModel.Selectors
             }
         }
 
-        class ChainTrustValidator : X509CertificateValidator
+        private class ChainTrustValidator : X509CertificateValidator
         {
-            bool _useMachineContext;
-            X509ChainPolicy _chainPolicy;
-            uint _chainPolicyOID = X509CertificateChain.DefaultChainPolicyOID;
+            private bool _useMachineContext;
+            private X509ChainPolicy _chainPolicy;
+            private uint _chainPolicyOID = X509CertificateChain.DefaultChainPolicyOID;
 
             public ChainTrustValidator()
             {
@@ -73,7 +74,7 @@ namespace System.IdentityModel.Selectors
                 if (certificate == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
 
-                // TODO: jasonpa: check on this
+                // TODO: check on this
                 // X509Chain chain = new X509Chain(_useMachineContext, _chainPolicyOID);
                 X509Chain chain = new X509Chain(); 
 
@@ -84,14 +85,12 @@ namespace System.IdentityModel.Selectors
 
                 if (!chain.Build(certificate))
                 {
-                    // TODO: jasonpa, check on this 
-                    throw new NotImplementedException("not real, need a real exception message, old one nuked");
-                    //throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenValidationException(SR.Format(SR.X509ChainBuildFail,
-                    //    SecurityUtils.GetCertificateId(certificate), GetChainStatusInformation(chain.ChainStatus))));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenValidationException(SR.Format(SR.X509ChainBuildFail,
+                        SecurityUtils.GetCertificateId(certificate), GetChainStatusInformation(chain.ChainStatus))));
                 }
             }
 
-            static string GetChainStatusInformation(X509ChainStatus[] chainStatus)
+            private static string GetChainStatusInformation(X509ChainStatus[] chainStatus)
             {
                 if (chainStatus != null)
                 {

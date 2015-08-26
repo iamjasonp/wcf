@@ -1,29 +1,23 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Net;
+using System.Net.Security;
+using System.Runtime;
+using System.Security.Authentication.ExtendedProtection;
+
 namespace System.ServiceModel.Channels
 {
-    using System;
-    using System.Collections;
-    using System.Threading;
-    using System.Net;
-    using System.Net.Security;
-    using System.Runtime;
-    using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Security.Authentication.ExtendedProtection;
-
-    static class ChannelBindingUtility
+    internal static class ChannelBindingUtility
     {
-        static ExtendedProtectionPolicy disabledPolicy = new ExtendedProtectionPolicy(PolicyEnforcement.Never);
-        static ExtendedProtectionPolicy defaultPolicy = disabledPolicy;
+        private static ExtendedProtectionPolicy s_disabledPolicy = new ExtendedProtectionPolicy(PolicyEnforcement.Never);
+        private static ExtendedProtectionPolicy s_defaultPolicy = s_disabledPolicy;
 
         public static ExtendedProtectionPolicy DisabledPolicy
         {
             get
             {
-                return disabledPolicy;
+                return s_disabledPolicy;
             }
         }
 
@@ -31,15 +25,15 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                return defaultPolicy;
+                return s_defaultPolicy;
             }
         }
 
         public static bool IsDefaultPolicy(ExtendedProtectionPolicy policy)
         {
-            return Object.ReferenceEquals(policy, defaultPolicy);
+            return Object.ReferenceEquals(policy, s_defaultPolicy);
         }
-        
+
         public static ChannelBinding GetToken(SslStream stream)
         {
             return GetToken(stream.TransportContext);

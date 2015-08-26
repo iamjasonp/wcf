@@ -1,29 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Globalization;
+using System.Runtime;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Security.Tokens;
+
 namespace System.ServiceModel.Security
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IdentityModel.Claims;
-    using System.IdentityModel.Selectors;
-    using System.IdentityModel.Tokens;
-    using System.Runtime;
-    using System.ServiceModel.Channels;
-    using System.ServiceModel.Diagnostics;
-    using System.ServiceModel.Dispatcher;
-    using System.ServiceModel.Security.Tokens;
-    using System.Net;
-    using System.Threading;
-    using System.Xml;
-    using System.Globalization;
-    using System.ServiceModel.Diagnostics.Application;
-
     // This class is named Settings since the only public APIs are for
     // settings; however, this class also manages all functionality
     // for session channels through internal APIs
 
-    static class SecuritySessionClientSettings
+    internal static class SecuritySessionClientSettings
     {
         internal const string defaultKeyRenewalIntervalString = "10:00:00";
         internal const string defaultKeyRolloverIntervalString = "00:05:00";
@@ -33,35 +22,35 @@ namespace System.ServiceModel.Security
         internal const bool defaultTolerateTransportFailures = true;
     }
 
-    sealed class SecuritySessionClientSettings<TChannel> : ISecurityCommunicationObject //: IChannelSecureConversationSessionSettings, ISecurityCommunicationObject
+    internal sealed class SecuritySessionClientSettings<TChannel> : ISecurityCommunicationObject //: IChannelSecureConversationSessionSettings, ISecurityCommunicationObject
     {
-        SecurityProtocolFactory sessionProtocolFactory;
-        TimeSpan keyRenewalInterval;
-        TimeSpan keyRolloverInterval;
-        bool tolerateTransportFailures;
-        SecurityChannelFactory<TChannel> securityChannelFactory;
-        IChannelFactory innerChannelFactory;
-        ChannelBuilder channelBuilder;
-        WrapperSecurityCommunicationObject communicationObject;
-        SecurityStandardsManager standardsManager;
-        SecurityTokenParameters issuedTokenParameters;
-        int issuedTokenRenewalThreshold;
-        bool canRenewSession = true;
-        object thisLock = new object();
+        private SecurityProtocolFactory _sessionProtocolFactory;
+        private TimeSpan _keyRenewalInterval;
+        private TimeSpan _keyRolloverInterval;
+        private bool _tolerateTransportFailures;
+        private SecurityChannelFactory<TChannel> _securityChannelFactory;
+        private IChannelFactory _innerChannelFactory;
+        private ChannelBuilder _channelBuilder;
+        private WrapperSecurityCommunicationObject _communicationObject;
+        private SecurityStandardsManager _standardsManager;
+        private SecurityTokenParameters _issuedTokenParameters;
+        private int _issuedTokenRenewalThreshold;
+        private bool _canRenewSession = true;
+        private object _thisLock = new object();
 
         public SecuritySessionClientSettings()
         {
-            this.keyRenewalInterval = SecuritySessionClientSettings.defaultKeyRenewalInterval;
-            this.keyRolloverInterval = SecuritySessionClientSettings.defaultKeyRolloverInterval;
-            this.tolerateTransportFailures = SecuritySessionClientSettings.defaultTolerateTransportFailures;
-            this.communicationObject = new WrapperSecurityCommunicationObject(this);
+            _keyRenewalInterval = SecuritySessionClientSettings.defaultKeyRenewalInterval;
+            _keyRolloverInterval = SecuritySessionClientSettings.defaultKeyRolloverInterval;
+            _tolerateTransportFailures = SecuritySessionClientSettings.defaultTolerateTransportFailures;
+            _communicationObject = new WrapperSecurityCommunicationObject(this);
         }
 
-        IChannelFactory InnerChannelFactory
+        private IChannelFactory InnerChannelFactory
         {
             get
             {
-                return this.innerChannelFactory;
+                return _innerChannelFactory;
             }
         }
 
@@ -69,19 +58,19 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.channelBuilder;
+                return _channelBuilder;
             }
             set
             {
-                this.channelBuilder = value;
+                _channelBuilder = value;
             }
         }
 
-        SecurityChannelFactory<TChannel> SecurityChannelFactory
+        private SecurityChannelFactory<TChannel> SecurityChannelFactory
         {
             get
             {
-                return this.securityChannelFactory;
+                return _securityChannelFactory;
             }
         }
 
@@ -89,12 +78,12 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.sessionProtocolFactory;
+                return _sessionProtocolFactory;
             }
             set
             {
-                this.communicationObject.ThrowIfDisposedOrImmutable();
-                this.sessionProtocolFactory = value;
+                _communicationObject.ThrowIfDisposedOrImmutable();
+                _sessionProtocolFactory = value;
             }
         }
 
@@ -102,7 +91,7 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.keyRenewalInterval;
+                return _keyRenewalInterval;
             }
             set
             {
@@ -110,8 +99,8 @@ namespace System.ServiceModel.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustbeGreaterThanTimeSpanZero)));
                 }
-                this.communicationObject.ThrowIfDisposedOrImmutable();
-                this.keyRenewalInterval = value;
+                _communicationObject.ThrowIfDisposedOrImmutable();
+                _keyRenewalInterval = value;
             }
         }
 
@@ -119,7 +108,7 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.keyRolloverInterval;
+                return _keyRolloverInterval;
             }
             set
             {
@@ -127,8 +116,8 @@ namespace System.ServiceModel.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustbeGreaterThanTimeSpanZero)));
                 }
-                this.communicationObject.ThrowIfDisposedOrImmutable();
-                this.keyRolloverInterval = value;
+                _communicationObject.ThrowIfDisposedOrImmutable();
+                _keyRolloverInterval = value;
             }
         }
 
@@ -136,12 +125,12 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.tolerateTransportFailures;
+                return _tolerateTransportFailures;
             }
             set
             {
-                this.communicationObject.ThrowIfDisposedOrImmutable();
-                this.tolerateTransportFailures = value;
+                _communicationObject.ThrowIfDisposedOrImmutable();
+                _tolerateTransportFailures = value;
             }
         }
 
@@ -149,11 +138,11 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.canRenewSession;
+                return _canRenewSession;
             }
             set
             {
-                this.canRenewSession = value;
+                _canRenewSession = value;
             }
         }
 
@@ -161,12 +150,12 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.issuedTokenParameters;
+                return _issuedTokenParameters;
             }
             set
             {
-                this.communicationObject.ThrowIfDisposedOrImmutable();
-                this.issuedTokenParameters = value;
+                _communicationObject.ThrowIfDisposedOrImmutable();
+                _issuedTokenParameters = value;
             }
         }
 
@@ -174,12 +163,12 @@ namespace System.ServiceModel.Security
         {
             get
             {
-                return this.standardsManager;
+                return _standardsManager;
             }
             set
             {
-                this.communicationObject.ThrowIfDisposedOrImmutable();
-                this.standardsManager = value;
+                _communicationObject.ThrowIfDisposedOrImmutable();
+                _standardsManager = value;
             }
         }
 
@@ -216,12 +205,12 @@ namespace System.ServiceModel.Security
 
         public IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return this.communicationObject.BeginClose(timeout, callback, state);
+            return _communicationObject.BeginClose(timeout, callback, state);
         }
 
         public void EndClose(IAsyncResult result)
         {
-            this.communicationObject.EndClose(result);
+            _communicationObject.EndClose(result);
         }
 
         IAsyncResult ISecurityCommunicationObject.OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
@@ -270,71 +259,71 @@ namespace System.ServiceModel.Security
 
         public void OnClose(TimeSpan timeout)
         {
-            if (this.sessionProtocolFactory != null)
+            if (_sessionProtocolFactory != null)
             {
-                this.sessionProtocolFactory.Close(false, timeout);
+                _sessionProtocolFactory.Close(false, timeout);
             }
         }
 
         public void OnAbort()
         {
-            if (this.sessionProtocolFactory != null)
+            if (_sessionProtocolFactory != null)
             {
-                this.sessionProtocolFactory.Close(true, TimeSpan.Zero);
+                _sessionProtocolFactory.Close(true, TimeSpan.Zero);
             }
         }
 
         public void OnOpen(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (this.sessionProtocolFactory == null)
+            if (_sessionProtocolFactory == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySessionProtocolFactoryShouldBeSetBeforeThisOperation)));
             }
-            if (this.standardsManager == null)
+            if (_standardsManager == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityStandardsManagerNotSet, this.GetType().ToString())));
             }
-            if (this.issuedTokenParameters == null)
+            if (_issuedTokenParameters == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.IssuedSecurityTokenParametersNotSet, this.GetType())));
             }
-            if (this.keyRenewalInterval < this.keyRolloverInterval)
+            if (_keyRenewalInterval < _keyRolloverInterval)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.KeyRolloverGreaterThanKeyRenewal)));
             }
-            this.issuedTokenRenewalThreshold = this.sessionProtocolFactory.SecurityBindingElement.LocalClientSettings.CookieRenewalThresholdPercentage;
+            _issuedTokenRenewalThreshold = _sessionProtocolFactory.SecurityBindingElement.LocalClientSettings.CookieRenewalThresholdPercentage;
             this.ConfigureSessionProtocolFactory();
-            this.sessionProtocolFactory.Open(true, timeoutHelper.RemainingTime());
+            _sessionProtocolFactory.Open(true, timeoutHelper.RemainingTime());
         }
 
         internal void Close(TimeSpan timeout)
         {
-            this.communicationObject.Close(timeout);
+            _communicationObject.Close(timeout);
         }
 
         internal void Abort()
         {
-            this.communicationObject.Abort();
+            _communicationObject.Abort();
         }
 
         internal void Open(SecurityChannelFactory<TChannel> securityChannelFactory,
             IChannelFactory innerChannelFactory, ChannelBuilder channelBuilder, TimeSpan timeout)
         {
-            this.securityChannelFactory = securityChannelFactory;
-            this.innerChannelFactory = innerChannelFactory;
-            this.channelBuilder = channelBuilder;
-            this.communicationObject.Open(timeout);
+            _securityChannelFactory = securityChannelFactory;
+            _innerChannelFactory = innerChannelFactory;
+            _channelBuilder = channelBuilder;
+            _communicationObject.Open(timeout);
         }
 
         internal TChannel OnCreateChannel(EndpointAddress remoteAddress, Uri via)
         {
-            this.communicationObject.ThrowIfClosed();
+            _communicationObject.ThrowIfClosed();
 
             if (typeof(TChannel) == typeof(IRequestSessionChannel))
             {
                 // return (TChannel)((object)(new SecurityRequestSessionChannel(this, remoteAddress, via)));
-                throw new NotImplementedException("OnCreateChannel typeof(IRequestSessionChannel)"); 
+                throw new NotImplementedException("OnCreateChannel typeof(IRequestSessionChannel)");
             }
             else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
             {
@@ -348,9 +337,9 @@ namespace System.ServiceModel.Security
             }
         }
 
-        void ConfigureSessionProtocolFactory()
+        private void ConfigureSessionProtocolFactory()
         {
-            throw new NotImplementedException("ConfigureSessionProtocolFactory"); 
+            throw new NotImplementedException("ConfigureSessionProtocolFactory");
             //if (this.sessionProtocolFactory is SessionSymmetricMessageSecurityProtocolFactory)
             //{
             //    AddressingVersion addressing = MessageVersion.Default.Addressing;

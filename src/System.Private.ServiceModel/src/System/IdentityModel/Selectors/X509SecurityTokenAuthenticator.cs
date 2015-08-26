@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
+using System.IdentityModel.Policy;
+using System.IdentityModel.Tokens;
+using System.ServiceModel;
+
 namespace System.IdentityModel.Selectors
 {
-    using Collections.ObjectModel;
-    using Policy;
-    using Tokens;
-    using ServiceModel;
-
     public class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
-        X509CertificateValidator validator;
-        bool mapToWindows;
-        bool includeWindowsGroups;
-        bool cloneHandle;
+        private X509CertificateValidator _validator;
+        private bool _mapToWindows;
+        private bool _includeWindowsGroups;
+        private bool _cloneHandle;
 
         public X509SecurityTokenAuthenticator()
             : this(X509CertificateValidator.ChainTrust)
@@ -42,22 +42,20 @@ namespace System.IdentityModel.Selectors
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("validator");
             }
 
-            this.validator = validator;
-            this.mapToWindows = mapToWindows;
-            this.includeWindowsGroups = includeWindowsGroups;
-            this.cloneHandle = cloneHandle;
+            _validator = validator;
+            _mapToWindows = mapToWindows;
+            _includeWindowsGroups = includeWindowsGroups;
+            _cloneHandle = cloneHandle;
         }
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException(); 
+            throw ExceptionHelper.PlatformNotSupported("X509SecurityTokenAuthenticator.CanValidateTokenCore");
         }
 
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
         {
-            // TODO: jasonpa
-            throw new PlatformNotSupportedException();
+            throw ExceptionHelper.PlatformNotSupported("X509SecurityTokenAuthenticator.ValidateTokenCore");
         }
     }
 }

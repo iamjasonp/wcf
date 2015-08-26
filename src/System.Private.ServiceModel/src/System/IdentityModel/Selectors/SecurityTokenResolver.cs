@@ -20,7 +20,7 @@ namespace System.IdentityModel.Selectors
         {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(NotImplemented.ByDesignWithMessage(SR.Format(SR.ID0023, this.GetType().AssemblyQualifiedName)));
         }
-        
+
         public static SecurityTokenResolver CreateDefaultSecurityTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
         {
             return new SimpleTokenResolver(tokens, canMatchLocalId);

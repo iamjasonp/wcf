@@ -277,7 +277,7 @@ namespace System.ServiceModel.Security.Tokens
             _securityKeys = new ReadOnlyCollection<SecurityKey>(temp);
             _isCookieMode = isCookieMode;
         }
-        
+
         public static SecurityContextSecurityToken CreateCookieSecurityContextToken(UniqueId contextId, string id, byte[] key,
             DateTime validFrom, DateTime validTo, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, SecurityStateEncoder securityStateEncoder)
         {

@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.IdentityModel.Tokens;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace System.IdentityModel.Selectors
 {
-    using System.IdentityModel.Tokens;
-    using System.Security.Cryptography.X509Certificates;
-    using ServiceModel;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     public class X509SecurityTokenProvider : SecurityTokenProvider, IDisposable
     {
-        X509Certificate2 _certificate;
+        private X509Certificate2 _certificate;
 
         public X509SecurityTokenProvider(X509Certificate2 certificate)
         {
@@ -20,7 +20,7 @@ namespace System.IdentityModel.Selectors
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
             }
 
-            this._certificate = new X509Certificate2(certificate.RawData);
+            _certificate = new X509Certificate2(certificate.RawData);
         }
 
         public X509SecurityTokenProvider(StoreLocation storeLocation, StoreName storeName, X509FindType findType, object findValue)
@@ -45,7 +45,7 @@ namespace System.IdentityModel.Selectors
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.FoundMultipleCerts, storeName, storeLocation, findType, findValue)));
                 }
 
-                this._certificate = new X509Certificate2(certificates[0].RawData);
+                _certificate = new X509Certificate2(certificates[0].RawData);
             }
             finally
             {
@@ -56,7 +56,7 @@ namespace System.IdentityModel.Selectors
 
         public X509Certificate2 Certificate
         {
-            get { return this._certificate; }
+            get { return _certificate; }
         }
 
         protected override async Task<SecurityToken> GetTokenCoreAsync(CancellationToken cancellationToken)

@@ -1,11 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
+
 namespace System.ServiceModel.Security
 {
-    using ComponentModel;
-    using System.Runtime.CompilerServices;
-
     /// <summary>
     /// An enumeration that lists the ways of validating a certificate.
     /// </summary>

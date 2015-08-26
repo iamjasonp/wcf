@@ -45,7 +45,6 @@ namespace System.ServiceModel
                 {
                     _messageCredentialType = value;
                 }
-                
             }
         }
 

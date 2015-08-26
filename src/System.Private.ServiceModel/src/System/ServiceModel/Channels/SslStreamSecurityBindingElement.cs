@@ -12,7 +12,7 @@ namespace System.ServiceModel.Channels
     {
         private IdentityVerifier _identityVerifier;
         private bool _requireClientCertificate;
-        SslProtocols _sslProtocols;
+        private SslProtocols _sslProtocols;
 
         public SslStreamSecurityBindingElement()
         {

@@ -91,25 +91,13 @@ namespace System.ServiceModel
                 string tokenType = initiatorRequirement.TokenType;
                 if (IsIssuedSecurityTokenRequirement(initiatorRequirement))
                 {
-                    //FederatedClientCredentialsParameters additionalParameters = this.FindFederatedChannelParameters(tokenRequirement);
-
-                    //if (additionalParameters != null && additionalParameters.IssuedSecurityToken != null)
-                    //{
-                    //    return new SimpleSecurityTokenProvider(additionalParameters.IssuedSecurityToken, tokenRequirement);
-                    //}
-
-                    //result = CreateIssuedSecurityTokenProvider(initiatorRequirement, additionalParameters);
-
-                    // TODO: jasonpa 
-                    throw new PlatformNotSupportedException("(IsIssuedSecurityTokenRequirement(initiatorRequirement)");
+                    throw ExceptionHelper.PlatformNotSupported("CreateSecurityTokenProvider (IsIssuedSecurityTokenRequirement(initiatorRequirement)");
                 }
                 else if (tokenType == SecurityTokenTypes.X509Certificate)
                 {
                     if (initiatorRequirement.Properties.ContainsKey(SecurityTokenRequirement.KeyUsageProperty) && initiatorRequirement.KeyUsage == SecurityKeyUsage.Exchange)
                     {
-                        // result = CreateServerX509TokenProvider(initiatorRequirement.TargetAddress);
-                        throw new PlatformNotSupportedException("SecurityKeyUsage.Exchange");
-
+                        throw ExceptionHelper.PlatformNotSupported("CreateSecurityTokenProvider X509Certificate - SecurityKeyUsage.Exchange");
                     }
                     else
                     {
@@ -117,20 +105,12 @@ namespace System.ServiceModel
                         {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientCertificateNotProvidedOnClientCredentials)));
                         }
-                        result = new X509SecurityTokenProvider(_parent.ClientCertificate.Certificate); 
+                        result = new X509SecurityTokenProvider(_parent.ClientCertificate.Certificate);
                     }
-
                 }
                 else if (tokenType == SecurityTokenTypes.UserName)
                 {
-                    //if (parent.UserName.UserName == null)
-                    //{
-                    //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.UserNamePasswordNotProvidedOnClientCredentials)));
-                    //}
-                    //result = new UserNameSecurityTokenProvider(parent.UserName.UserName, parent.UserName.Password);
-
-                    // TODO: jasonpa 
-                    throw new PlatformNotSupportedException("SecurityTokenTypes.UserName");
+                    throw ExceptionHelper.PlatformNotSupported("CreateSecurityTokenProvider SecurityTokenTypes.Username");
                 }
             }
 
@@ -149,12 +129,12 @@ namespace System.ServiceModel
             throw ExceptionHelper.PlatformNotSupported("CreateSecurityTokenSerializer(SecurityTokenVersion version) not supported");
         }
 
-        X509SecurityTokenAuthenticator CreateServerX509TokenAuthenticator()
+        private X509SecurityTokenAuthenticator CreateServerX509TokenAuthenticator()
         {
             return new X509SecurityTokenAuthenticator(_parent.ServiceCertificate.Authentication.GetCertificateValidator(), false);
         }
 
-        X509SecurityTokenAuthenticator CreateServerSslX509TokenAuthenticator()
+        private X509SecurityTokenAuthenticator CreateServerSslX509TokenAuthenticator()
         {
             if (_parent.ServiceCertificate.SslCertificateAuthentication != null)
             {
@@ -166,7 +146,7 @@ namespace System.ServiceModel
 
         public override SecurityTokenAuthenticator CreateSecurityTokenAuthenticator(SecurityTokenRequirement tokenRequirement, out SecurityTokenResolver outOfBandTokenResolver)
         {
-                        if (tokenRequirement == null)
+            if (tokenRequirement == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenRequirement");
             }

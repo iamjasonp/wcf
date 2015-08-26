@@ -80,7 +80,7 @@ namespace System.ServiceModel.Security
         }
     }
 
-    static class SslProtocolsHelper
+    internal static class SslProtocolsHelper
     {
         internal static bool IsDefined(SslProtocols value)
         {
@@ -223,17 +223,17 @@ namespace System.ServiceModel.Security
         public const string Principal = "Principal";
         public const string Identities = "Identities";
         private static IIdentity s_anonymousIdentity;
-        private static X509SecurityTokenAuthenticator nonValidatingX509Authenticator;
+        private static X509SecurityTokenAuthenticator s_nonValidatingX509Authenticator;
 
         internal static X509SecurityTokenAuthenticator NonValidatingX509Authenticator
         {
             get
             {
-                if (nonValidatingX509Authenticator == null)
+                if (s_nonValidatingX509Authenticator == null)
                 {
-                    nonValidatingX509Authenticator = new X509SecurityTokenAuthenticator(X509CertificateValidator.None);
+                    s_nonValidatingX509Authenticator = new X509SecurityTokenAuthenticator(X509CertificateValidator.None);
                 }
-                return nonValidatingX509Authenticator;
+                return s_nonValidatingX509Authenticator;
             }
         }
 
@@ -614,7 +614,7 @@ namespace System.ServiceModel.Security
             return (certificate != null);
         }
 
-        static X509Certificate2 GetCertificateFromStoreCore(StoreName storeName, StoreLocation storeLocation,
+        private static X509Certificate2 GetCertificateFromStoreCore(StoreName storeName, StoreLocation storeLocation,
             X509FindType findType, object findValue, EndpointAddress target, bool throwIfMultipleOrNoMatch)
         {
             if (findValue == null)
@@ -649,7 +649,7 @@ namespace System.ServiceModel.Security
             }
         }
 
-        static Exception CreateCertificateLoadException(StoreName storeName, StoreLocation storeLocation,
+        private static Exception CreateCertificateLoadException(StoreName storeName, StoreLocation storeLocation,
             X509FindType findType, object findValue, EndpointAddress target, int certCount)
         {
             if (certCount == 0)
@@ -695,8 +695,6 @@ namespace System.ServiceModel.Security
             // Check that Dispose() and Reset() do the same thing
             certificate.Dispose();
         }
-
-
     }
     internal struct SecurityUniqueId
     {

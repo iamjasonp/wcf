@@ -11,8 +11,8 @@ namespace System.ServiceModel.Description
     public class ClientCredentials : SecurityCredentialsManager, IEndpointBehavior
     {
         private UserNamePasswordClientCredential _userName;
-        X509CertificateInitiatorClientCredential _clientCertificate;
-        X509CertificateRecipientClientCredential _serviceCertificate;
+        private X509CertificateInitiatorClientCredential _clientCertificate;
+        private X509CertificateRecipientClientCredential _serviceCertificate;
         private WindowsClientCredential _windows;
         private HttpDigestClientCredential _httpDigest;
         private bool _isReadOnly;

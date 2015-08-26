@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
+using System.IdentityModel.Policy;
+using System.IdentityModel.Tokens;
+using System.Runtime.Diagnostics;
+using System.ServiceModel.Diagnostics.Application;
+using System.ServiceModel;
+
 namespace System.IdentityModel.Selectors
 {
-    using System.Collections.ObjectModel;
-    using System.IdentityModel.Policy;
-    using System.IdentityModel.Tokens;
-    using System.Runtime.Diagnostics;
-    using ServiceModel.Diagnostics.Application;
-    using ServiceModel;
-
     public abstract class SecurityTokenAuthenticator
     {
         protected SecurityTokenAuthenticator() { }

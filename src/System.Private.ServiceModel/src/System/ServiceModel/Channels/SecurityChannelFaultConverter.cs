@@ -3,28 +3,24 @@
 
 namespace System.ServiceModel.Channels
 {
-    using System;
-    using System.ServiceModel;
-    using System.ServiceModel.Security;
-
     internal class SecurityChannelFaultConverter : FaultConverter
     {
-        IChannel innerChannel;
+        private IChannel _innerChannel;
 
         internal SecurityChannelFaultConverter(IChannel innerChannel)
         {
-            this.innerChannel = innerChannel;
+            _innerChannel = innerChannel;
         }
 
         protected override bool OnTryCreateException(Message message, MessageFault fault, out Exception exception)
         {
-            if (this.innerChannel == null)
+            if (_innerChannel == null)
             {
                 exception = null;
                 return false;
             }
 
-            FaultConverter inner = this.innerChannel.GetProperty<FaultConverter>();
+            FaultConverter inner = _innerChannel.GetProperty<FaultConverter>();
             if (inner != null)
             {
                 return inner.TryCreateException(message, fault, out exception);
@@ -38,13 +34,13 @@ namespace System.ServiceModel.Channels
 
         protected override bool OnTryCreateFaultMessage(Exception exception, out Message message)
         {
-            if (this.innerChannel == null)
+            if (_innerChannel == null)
             {
                 message = null;
                 return false;
             }
 
-            FaultConverter inner = innerChannel.GetProperty<FaultConverter>();
+            FaultConverter inner = _innerChannel.GetProperty<FaultConverter>();
             if (inner != null)
             {
                 return inner.TryCreateFaultMessage(exception, out message);

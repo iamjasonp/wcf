@@ -27,7 +27,7 @@ namespace System.ServiceModel.Channels
 
         private MessageSecurityVersion _messageSecurityVersion;
         private SecurityHeaderLayout _securityHeaderLayout;
-        long _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
+        private long _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
         private XmlDictionaryReaderQuotas _readerQuotas;
         private bool _protectTokens = defaultProtectTokens;
 

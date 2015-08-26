@@ -1,19 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Security.Cryptography.X509Certificates;
+
 namespace System.ServiceModel.Security
 {
-    using System.Security.Cryptography.X509Certificates;
-    using System.ServiceModel;
-
     public sealed class X509CertificateInitiatorClientCredential
     {
         internal const StoreLocation DefaultStoreLocation = StoreLocation.CurrentUser;
         internal const StoreName DefaultStoreName = StoreName.My;
         internal const X509FindType DefaultFindType = X509FindType.FindBySubjectDistinguishedName;
 
-        X509Certificate2 certificate;
-        bool isReadOnly;
+        private X509Certificate2 _certificate;
+        private bool _isReadOnly;
 
         internal X509CertificateInitiatorClientCredential()
         {
@@ -22,20 +21,20 @@ namespace System.ServiceModel.Security
 
         internal X509CertificateInitiatorClientCredential(X509CertificateInitiatorClientCredential other)
         {
-            this.certificate = other.certificate;
-            this.isReadOnly = other.isReadOnly;
+            _certificate = other._certificate;
+            _isReadOnly = other._isReadOnly;
         }
 
         public X509Certificate2 Certificate
         {
             get
             {
-                return this.certificate;
+                return _certificate;
             }
             set
             {
                 ThrowIfImmutable();
-                this.certificate = value;
+                _certificate = value;
             }
         }
 
@@ -55,17 +54,17 @@ namespace System.ServiceModel.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("findValue");
             }
             ThrowIfImmutable();
-            this.certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
+            _certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
         }
 
         internal void MakeReadOnly()
         {
-            this.isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (this.isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }

@@ -160,9 +160,9 @@ namespace System.ServiceModel.Channels
                     return new SecureConnectionDuplexSession(channel);
                 }
             }
-            class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
+            private class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
             {
-                EndpointIdentity remoteIdentity;
+                private EndpointIdentity _remoteIdentity;
 
                 public SecureConnectionDuplexSession(FramingDuplexSessionChannel channel)
                     : base(channel)
@@ -174,19 +174,19 @@ namespace System.ServiceModel.Channels
                 {
                     get
                     {
-                        if (remoteIdentity == null)
+                        if (_remoteIdentity == null)
                         {
                             SecurityMessageProperty security = this.Channel.RemoteSecurity;
                             if (security != null && security.ServiceSecurityContext != null &&
                                 security.ServiceSecurityContext.IdentityClaim != null &&
                                 security.ServiceSecurityContext.PrimaryIdentity != null)
                             {
-                                this.remoteIdentity = EndpointIdentity.CreateIdentity(
+                                _remoteIdentity = EndpointIdentity.CreateIdentity(
                                     security.ServiceSecurityContext.IdentityClaim);
                             }
                         }
 
-                        return this.remoteIdentity;
+                        return _remoteIdentity;
                     }
                 }
             }
@@ -448,7 +448,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        void SetRemoteSecurity(StreamUpgradeInitiator upgradeInitiator)
+        private void SetRemoteSecurity(StreamUpgradeInitiator upgradeInitiator)
         {
             this.RemoteSecurity = StreamSecurityUpgradeInitiator.GetRemoteSecurity(upgradeInitiator);
         }

@@ -28,7 +28,7 @@ namespace System.ServiceModel.Security
     // of simple return values.
     internal abstract class SecurityProtocol : ISecurityCommunicationObject
     {
-        WrapperSecurityCommunicationObject _communicationObject;
+        private WrapperSecurityCommunicationObject _communicationObject;
 
         public TimeSpan DefaultCloseTimeout
         {
@@ -64,6 +64,5 @@ namespace System.ServiceModel.Security
                 _communicationObject.Close(timeout);
             }
         }
-
     }
 }

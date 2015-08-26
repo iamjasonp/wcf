@@ -1,33 +1,33 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.IO;
+using System.Runtime.Diagnostics;
+using System.ServiceModel.Security;
+
 namespace System.ServiceModel.Channels
 {
-    using System.IO;
-    using System.Runtime.Diagnostics;
-    using System.ServiceModel.Security;
-
-    abstract class StreamSecurityUpgradeAcceptorBase : StreamSecurityUpgradeAcceptor
+    internal abstract class StreamSecurityUpgradeAcceptorBase : StreamSecurityUpgradeAcceptor
     {
-        SecurityMessageProperty remoteSecurity;
-        bool securityUpgraded;
-        string upgradeString;
-        EventTraceActivity eventTraceActivity;
+        private SecurityMessageProperty _remoteSecurity;
+        private bool _securityUpgraded;
+        private string _upgradeString;
+        private EventTraceActivity _eventTraceActivity;
 
         protected StreamSecurityUpgradeAcceptorBase(string upgradeString)
         {
-            this.upgradeString = upgradeString;
+            _upgradeString = upgradeString;
         }
 
         internal EventTraceActivity EventTraceActivity
         {
-            get 
+            get
             {
-                if (this.eventTraceActivity == null)
+                if (_eventTraceActivity == null)
                 {
-                    this.eventTraceActivity = EventTraceActivity.GetFromThreadOrCreate();
+                    _eventTraceActivity = EventTraceActivity.GetFromThreadOrCreate();
                 }
-                return this.eventTraceActivity;
+                return _eventTraceActivity;
             }
         }
 
@@ -38,8 +38,8 @@ namespace System.ServiceModel.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("stream");
             }
 
-            Stream result = this.OnAcceptUpgrade(stream, out this.remoteSecurity);
-            this.securityUpgraded = true;
+            Stream result = this.OnAcceptUpgrade(stream, out _remoteSecurity);
+            _securityUpgraded = true;
             return result;
         }
 
@@ -55,12 +55,12 @@ namespace System.ServiceModel.Channels
 
         public override bool CanUpgrade(string contentType)
         {
-            if (this.securityUpgraded)
+            if (_securityUpgraded)
             {
                 return false;
             }
 
-            return (contentType == this.upgradeString);
+            return (contentType == _upgradeString);
         }
 
         public override Stream EndAcceptUpgrade(IAsyncResult result)
@@ -69,15 +69,15 @@ namespace System.ServiceModel.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("result");
             }
-            Stream retValue = this.OnEndAcceptUpgrade(result, out this.remoteSecurity);
-            this.securityUpgraded = true;
+            Stream retValue = this.OnEndAcceptUpgrade(result, out _remoteSecurity);
+            _securityUpgraded = true;
             return retValue;
         }
 
         public override SecurityMessageProperty GetRemoteSecurity()
         {
             // this could be null if upgrade not completed.
-            return this.remoteSecurity;
+            return _remoteSecurity;
         }
 
         protected abstract Stream OnAcceptUpgrade(Stream stream, out SecurityMessageProperty remoteSecurity);
