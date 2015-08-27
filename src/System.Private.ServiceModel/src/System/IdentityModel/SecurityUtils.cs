@@ -6,7 +6,9 @@ using System.Collections.ObjectModel;
 using System.IdentityModel.Claims;
 using System.IdentityModel.Policy;
 using System.Runtime;
+#if FEATURE_CORECLR
 using System.Security.Cryptography.X509Certificates;
+#endif
 using System.Security.Principal;
 using System.ServiceModel;
 using System.Text;
@@ -166,6 +168,7 @@ namespace System.IdentityModel
             throw ExceptionHelper.PlatformNotSupported();
         }
 
+#if FEATURE_CORECLR // X509Certificate
         internal static string GetCertificateId(X509Certificate2 certificate)
         {
             StringBuilder str = new StringBuilder(256);
@@ -197,6 +200,7 @@ namespace System.IdentityModel
             str.Append("; ");
             str.Append(certificate.Thumbprint);
         }
+#endif 
 
         internal static ReadOnlyCollection<IAuthorizationPolicy> CloneAuthorizationPoliciesIfNecessary(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {

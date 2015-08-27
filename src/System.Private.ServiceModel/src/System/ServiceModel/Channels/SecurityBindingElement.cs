@@ -4,7 +4,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Security;
+#if FEATURE_CORECLR // ExtendedProtection
 using System.Security.Authentication.ExtendedProtection;
+#endif
 using System.ServiceModel.Security;
 using System.ServiceModel.Security.Tokens;
 using System.Text;
@@ -235,6 +237,7 @@ namespace System.ServiceModel.Channels
 
             // attach the ExtendedProtectionPolicy to the securityProtcolFactory so it will be 
             // available when building the channel.
+#if FEATURE_CORECLR // ExtendedProtection
             if (transportBindingElement != null)
             {
                 SecurityChannelFactory<TChannel> scf = result as SecurityChannelFactory<TChannel>;
@@ -243,7 +246,7 @@ namespace System.ServiceModel.Channels
                     scf.SecurityProtocolFactory.ExtendedProtectionPolicy = transportBindingElement.GetProperty<ExtendedProtectionPolicy>(context);
                 }
             }
-
+#endif
             return result;
         }
 

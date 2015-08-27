@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+
 using System.Collections.ObjectModel;
 using System.IdentityModel.Policy;
 using System.IdentityModel.Tokens;
@@ -10,6 +11,7 @@ namespace System.IdentityModel.Selectors
 {
     public class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
+#if FEATURE_CORECLR // X509Certificate
         private X509CertificateValidator _validator;
         private bool _mapToWindows;
         private bool _includeWindowsGroups;
@@ -47,6 +49,7 @@ namespace System.IdentityModel.Selectors
             _includeWindowsGroups = includeWindowsGroups;
             _cloneHandle = cloneHandle;
         }
+#endif
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
@@ -59,3 +62,4 @@ namespace System.IdentityModel.Selectors
         }
     }
 }
+

@@ -15,7 +15,9 @@ using System.Net.Security;
 using System.Runtime;
 using System.Security;
 using System.Security.Authentication;
+#if FEATURE_CORECLR // X509Certificate
 using System.Security.Cryptography.X509Certificates;
+#endif // FEATURE_CORECLR
 using System.Security.Principal;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Diagnostics;
@@ -223,6 +225,7 @@ namespace System.ServiceModel.Security
         public const string Principal = "Principal";
         public const string Identities = "Identities";
         private static IIdentity s_anonymousIdentity;
+#if FEATURE_CORECLR
         private static X509SecurityTokenAuthenticator s_nonValidatingX509Authenticator;
 
         internal static X509SecurityTokenAuthenticator NonValidatingX509Authenticator
@@ -236,6 +239,7 @@ namespace System.ServiceModel.Security
                 return s_nonValidatingX509Authenticator;
             }
         }
+#endif // FEATURE_CORECLR
 
         internal static IIdentity AnonymousIdentity
         {
@@ -298,12 +302,12 @@ namespace System.ServiceModel.Security
             }
         }
 
-#if FEATURE_NETNATIVE 
+#if FEATURE_NETNATIVE
         private static bool IsSystemAccount(WindowsIdentity self)
         {
             throw ExceptionHelper.PlatformNotSupported();
         }
-#else 
+#else
         private static bool IsSystemAccount(WindowsIdentity self)
         {
             SecurityIdentifier sid = self.User;
@@ -317,7 +321,7 @@ namespace System.ServiceModel.Security
                     || sid.IsWellKnown(WellKnownSidType.LocalServiceSid)
                     || self.User.Value.StartsWith("S-1-5-82", StringComparison.OrdinalIgnoreCase));
         }
-#endif 
+#endif
         internal static EndpointIdentity CreateWindowsIdentity(bool spnOnly)
         {
             EndpointIdentity identity = null;
@@ -596,7 +600,7 @@ namespace System.ServiceModel.Security
             return derivationAlgorithm;
         }
 
-
+#if FEATURE_CORECLR // X509Certificate
         internal static X509Certificate2 GetCertificateFromStore(StoreName storeName, StoreLocation storeLocation,
             X509FindType findType, object findValue, EndpointAddress target)
         {
@@ -695,7 +699,9 @@ namespace System.ServiceModel.Security
             // Check that Dispose() and Reset() do the same thing
             certificate.Dispose();
         }
+#endif // FEATURE_CORECLR
     }
+
     internal struct SecurityUniqueId
     {
         private static long s_nextId = 0;

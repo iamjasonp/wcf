@@ -9,8 +9,10 @@ using System.IO;
 using System.Net.Security;
 using System.Runtime;
 using System.Security.Authentication;
+#if FEATURE_CORECLR // X509Certificates
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography.X509Certificates;
+#endif 
 using System.ServiceModel.Description;
 using System.ServiceModel.Diagnostics.Application;
 using System.ServiceModel.Security;
@@ -26,7 +28,9 @@ namespace System.ServiceModel.Channels
         private SecurityTokenProvider _serverTokenProvider;
         private EndpointIdentity _identity;
         private IdentityVerifier _identityVerifier;
+#if FEATURE_CORECLR // X509Certificates
         private X509Certificate2 _serverCertificate;
+#endif // FEATURE_CORECLR
         private bool _requireClientCertificate;
         private string _scheme;
         private SslProtocols _sslProtocols = SslProtocols.Ssl2 | SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
@@ -74,11 +78,13 @@ namespace System.ServiceModel.Channels
         {
             get
             {
+#if FEATURE_CORECLR
                 if ((_identity == null) && (_serverCertificate != null))
                 {
                     // this.identity = SecurityUtils.GetServiceCertificateIdentity(this.serverCertificate);
                     throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider.Identity - server certificate");
                 }
+#endif // FEATURE_CORECLR
                 return _identity;
             }
         }
@@ -99,6 +105,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
+#if FEATURE_CORECLR // X509Certificates
         public X509Certificate2 ServerCertificate
         {
             get
@@ -119,6 +126,7 @@ namespace System.ServiceModel.Channels
                 return _clientCertificateAuthenticator;
             }
         }
+#endif // FEATURE_CORECLR
 
         public SecurityTokenManager ClientSecurityTokenManager
         {
@@ -140,13 +148,16 @@ namespace System.ServiceModel.Channels
 
         public override T GetProperty<T>()
         {
+#if FEATURE_CORECLR
             if (typeof(T) == typeof(IChannelBindingProvider) || typeof(T) == typeof(IStreamUpgradeChannelBindingProvider))
             {
                 return (T)(object)this;
             }
+#endif //FEATURE_CORECLR
             return base.GetProperty<T>();
         }
 
+#if FEATURE_CORECLR
         ChannelBinding IStreamUpgradeChannelBindingProvider.GetChannelBinding(StreamUpgradeInitiator upgradeInitiator, ChannelBindingKind kind)
         {
             if (upgradeInitiator == null)
@@ -190,12 +201,12 @@ namespace System.ServiceModel.Channels
 
             return sslupgradeAcceptor.ChannelBinding;
         }
+#endif
 
         void IChannelBindingProvider.EnableChannelBindingSupport()
         {
             _enableChannelBinding = true;
         }
-
 
         bool IChannelBindingProvider.IsChannelBindingSupportEnabled
         {
@@ -245,6 +256,7 @@ namespace System.ServiceModel.Channels
             throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
 
+#if FEATURE_CORECLR // X509Certificates
         private void SetupServerCertificate(SecurityToken token)
         {
             X509SecurityToken x509Token = token as X509SecurityToken;
@@ -256,14 +268,17 @@ namespace System.ServiceModel.Channels
             }
             _serverCertificate = new X509Certificate2(x509Token.Certificate.RawData);
         }
+#endif // FEATURE_CORECLR
 
         private void CleanupServerCertificate()
         {
+#if FEATURE_CORECLR
             if (_serverCertificate != null)
             {
                 _serverCertificate.Dispose();
                 _serverCertificate = null;
             }
+#endif // FEATURE_CORECLR
         }
 
         protected override void OnOpen(TimeSpan timeout)
@@ -271,6 +286,7 @@ namespace System.ServiceModel.Channels
             using (CancellationTokenSource cts = new CancellationTokenSource(timeout))
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+#if FEATURE_CORECLR
                 SecurityUtils.OpenTokenAuthenticatorIfRequired(this.ClientCertificateAuthenticator, timeoutHelper.RemainingTime());
 
                 if (_serverTokenProvider != null)
@@ -281,6 +297,7 @@ namespace System.ServiceModel.Channels
                     SecurityUtils.CloseTokenProviderIfRequired(_serverTokenProvider, timeoutHelper.RemainingTime());
                     _serverTokenProvider = null;
                 }
+#endif // FEATURE_CORECLR
             }
         }
 
@@ -300,8 +317,10 @@ namespace System.ServiceModel.Channels
         private SslStreamSecurityUpgradeProvider _parent;
         private SecurityMessageProperty _clientSecurity;
         // for audit
+#if FEATURE_CORECLR // X509Certificates
         private X509Certificate2 _clientCertificate = null;
         private ChannelBinding _channelBindingToken;
+#endif // FEATURE_CORECLR
 
         public SslStreamSecurityUpgradeAcceptor(SslStreamSecurityUpgradeProvider parent)
             : base(FramingUpgradeString.SslOrTls)
@@ -310,6 +329,7 @@ namespace System.ServiceModel.Channels
             _clientSecurity = new SecurityMessageProperty();
         }
 
+#if FEATURE_CORECLR
         internal ChannelBinding ChannelBinding
         {
             get
@@ -318,6 +338,7 @@ namespace System.ServiceModel.Channels
                 return _channelBindingToken;
             }
         }
+#endif //FEATURE_CORECLR
 
         internal bool IsChannelBindingSupportEnabled
         {
@@ -329,6 +350,7 @@ namespace System.ServiceModel.Channels
 
         protected override Stream OnAcceptUpgrade(Stream stream, out SecurityMessageProperty remoteSecurity)
         {
+#if FEATURE_CORECLR // X509Certificates
             if (TD.SslOnAcceptUpgradeIsEnabled())
             {
                 TD.SslOnAcceptUpgrade(this.EventTraceActivity);
@@ -340,6 +362,7 @@ namespace System.ServiceModel.Channels
             {
                 sslStream.AuthenticateAsServer(_parent.ServerCertificate, _parent.RequireClientCertificate,
                     _parent.SslProtocols, false);
+
             }
             catch (AuthenticationException exception)
             {
@@ -360,6 +383,9 @@ namespace System.ServiceModel.Channels
             }
 
             return sslStream;
+#else
+            throw ExceptionHelper.PlatformNotSupported("SslStream in UAP not supported");
+#endif // FEATURE_CORECLR
         }
 
         protected override IAsyncResult OnBeginAcceptUpgrade(Stream stream, AsyncCallback callback, object state)
@@ -372,6 +398,7 @@ namespace System.ServiceModel.Channels
             throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeProvider async path");
         }
 
+#if FEATURE_CORECLR // X509Certificates
         // callback from schannel
         private bool ValidateRemoteCertificate(object sender, X509Certificate certificate, X509Chain chain,
             SslPolicyErrors sslPolicyErrors)
@@ -419,68 +446,24 @@ namespace System.ServiceModel.Channels
             }
             return base.GetRemoteSecurity();
         }
-
-        //class AcceptUpgradeAsyncResult : StreamSecurityUpgradeAcceptorAsyncResult
-        //{
-        //    SslStreamSecurityUpgradeAcceptor acceptor;
-        //    SslStream sslStream;
-        //    ChannelBinding channelBindingToken;
-
-        //    public AcceptUpgradeAsyncResult(SslStreamSecurityUpgradeAcceptor acceptor, AsyncCallback callback,
-        //        object state)
-        //        : base(callback, state)
-        //    {
-        //        this.acceptor = acceptor;
-        //    }
-
-        //    protected override IAsyncResult OnBegin(Stream stream, AsyncCallback callback)
-        //    {
-        //        if (TD.SslOnAcceptUpgradeIsEnabled())
-        //        {
-        //            TD.SslOnAcceptUpgrade(acceptor.EventTraceActivity);
-        //        }
-
-        //        this.sslStream = new SslStream(stream, false, this.acceptor.ValidateRemoteCertificate);
-        //        return this.sslStream.BeginAuthenticateAsServer(this.acceptor.parent.ServerCertificate,
-        //            this.acceptor.parent.RequireClientCertificate, this.acceptor.parent.SslProtocols, false, callback, this);
-        //    }
-
-        //    protected override Stream OnCompleteAuthenticateAsServer(IAsyncResult result)
-        //    {
-        //        this.sslStream.EndAuthenticateAsServer(result);
-
-        //        if (this.acceptor.IsChannelBindingSupportEnabled)
-        //        {
-        //            this.channelBindingToken = ChannelBindingUtility.GetToken(this.sslStream);
-        //        }
-
-        //        return this.sslStream;
-        //    }
-
-        //    protected override SecurityMessageProperty ValidateCreateSecurity()
-        //    {
-        //        return this.acceptor.clientSecurity;
-        //    }
-
-        //    public static Stream End(IAsyncResult result, out SecurityMessageProperty remoteSecurity, out ChannelBinding channelBinding)
-        //    {
-        //        Stream stream = StreamSecurityUpgradeAcceptorAsyncResult.End(result, out remoteSecurity);
-        //        channelBinding = ((AcceptUpgradeAsyncResult)result).channelBindingToken;
-        //        return stream;
-        //    }
-        //}
+#endif // FEATURE_CORECLR 
     }
 
     internal class SslStreamSecurityUpgradeInitiator : StreamSecurityUpgradeInitiatorBase
     {
         private SslStreamSecurityUpgradeProvider _parent;
+#if FEATURE_CORECLR
         private SecurityMessageProperty _serverSecurity;
+#endif 
         private SecurityTokenProvider _clientCertificateProvider;
+#if FEATURE_CORECLR
         private X509SecurityToken _clientToken;
+#endif
         private SecurityTokenAuthenticator _serverCertificateAuthenticator;
+#if FEATURE_CORECLR
         private ChannelBinding _channelBindingToken;
-
         private static LocalCertificateSelectionCallback s_clientCertificateSelectionCallback;
+#endif
 
         public SslStreamSecurityUpgradeInitiator(SslStreamSecurityUpgradeProvider parent,
             EndpointAddress remoteAddress, Uri via)
@@ -517,6 +500,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
+#if FEATURE_CORECLR // X509Certificates
         private static LocalCertificateSelectionCallback ClientCertificateSelectionCallback
         {
             get
@@ -525,6 +509,7 @@ namespace System.ServiceModel.Channels
                 {
                     s_clientCertificateSelectionCallback = new LocalCertificateSelectionCallback(SelectClientCertificate);
                 }
+
                 return s_clientCertificateSelectionCallback;
             }
         }
@@ -537,6 +522,7 @@ namespace System.ServiceModel.Channels
                 return _channelBindingToken;
             }
         }
+#endif // FEATURE_CORECLR
 
         internal bool IsChannelBindingSupportEnabled
         {
@@ -573,10 +559,12 @@ namespace System.ServiceModel.Channels
             if (_clientCertificateProvider != null)
             {
                 SecurityUtils.OpenTokenProviderIfRequired(_clientCertificateProvider, timeoutHelper.RemainingTime());
+#if FEATURE_CORECLR
                 using (CancellationTokenSource cts = new CancellationTokenSource(timeoutHelper.RemainingTime()))
                 {
                     _clientToken = (X509SecurityToken)_clientCertificateProvider.GetTokenAsync(cts.Token).GetAwaiter().GetResult();
                 }
+#endif
             }
         }
 
@@ -627,20 +615,25 @@ namespace System.ServiceModel.Channels
             {
                 TD.SslOnInitiateUpgrade();
             }
-
+#if FEATURE_CORECLR // X509Certificates
             X509CertificateCollection clientCertificates = null;
             LocalCertificateSelectionCallback selectionCallback = null;
+
             if (_clientToken != null)
             {
                 clientCertificates = new X509CertificateCollection();
                 clientCertificates.Add(_clientToken.Certificate);
                 selectionCallback = ClientCertificateSelectionCallback;
             }
+#endif
 
+#if FEATURE_CORECLR // X509Certificates
             SslStream sslStream = new SslStream(stream, false, this.ValidateRemoteCertificate, selectionCallback);
+
             try
             {
                 sslStream.AuthenticateAsClient(string.Empty, clientCertificates, _parent.SslProtocols, false);
+
             }
             catch (SecurityTokenValidationException tokenValidationException)
             {
@@ -666,8 +659,12 @@ namespace System.ServiceModel.Channels
             }
 
             return sslStream;
+#else
+            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator - SslStream in UAP");
+#endif // FEATURE_CORECLR
         }
 
+#if FEATURE_CORECLR
         private static X509Certificate SelectClientCertificate(object sender, string targetHost,
             X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
         {
@@ -679,5 +676,6 @@ namespace System.ServiceModel.Channels
         {
             throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator.ValidateRemoteCertificate");
         }
+#endif
     }
 }

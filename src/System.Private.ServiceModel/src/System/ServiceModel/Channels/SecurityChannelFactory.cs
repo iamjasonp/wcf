@@ -153,34 +153,7 @@ namespace System.ServiceModel.Channels
                 _sessionClientSettings.Abort();
             }
         }
-
-        //protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
-        //{
-        //    List<OperationWithTimeoutBeginCallback> begins = new List<OperationWithTimeoutBeginCallback>();
-        //    List<OperationEndCallback> ends = new List<OperationEndCallback>();
-        //    begins.Add(new OperationWithTimeoutBeginCallback(base.OnBeginClose));
-        //    ends.Add(new OperationEndCallback(base.OnEndClose));
-
-        //    if (this.securityProtocolFactory != null && !this.SessionMode)
-        //    {
-        //        begins.Add(new OperationWithTimeoutBeginCallback(this.securityProtocolFactory.BeginClose));
-        //        ends.Add(new OperationEndCallback(this.securityProtocolFactory.EndClose));
-        //    }
-
-        //    if (this.sessionClientSettings != null)
-        //    {
-        //        begins.Add(new OperationWithTimeoutBeginCallback(this.sessionClientSettings.BeginClose));
-        //        ends.Add(new OperationEndCallback(this.sessionClientSettings.EndClose));
-        //    }
-
-        //    return OperationWithTimeoutComposer.BeginComposeAsyncOperations(timeout, begins.ToArray(), ends.ToArray(), callback, state);
-        //}
-
-        //protected override void OnEndClose(IAsyncResult result)
-        //{
-        //    OperationWithTimeoutComposer.EndComposeAsyncOperations(result);
-        //}
-
+        
         protected override void OnClose(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
@@ -203,32 +176,32 @@ namespace System.ServiceModel.Channels
             if (typeof(TChannel) == typeof(IOutputChannel))
             {
                 //return (TChannel)(object)new SecurityOutputChannel(this, this.securityProtocolFactory, ((IChannelFactory<IOutputChannel>)this.InnerChannelFactory).CreateChannel(address, via), address, via);
-                throw new NotImplementedException("SecurityOutputChannel");
+                throw ExceptionHelper.PlatformNotSupported("SecurityChannelFactory.OnCreateChannel - SecurityOutputChannel");
             }
             else if (typeof(TChannel) == typeof(IOutputSessionChannel))
             {
                 //return (TChannel)(object)new SecurityOutputSessionChannel(this, this.securityProtocolFactory, ((IChannelFactory<IOutputSessionChannel>)this.InnerChannelFactory).CreateChannel(address, via), address, via);
-                throw new NotImplementedException("SecurityOutputSessionChannel");
+                throw ExceptionHelper.PlatformNotSupported("SecurityChannelFactory.OnCreateChannel - SecurityOutputSessionChannel");
             }
             else if (typeof(TChannel) == typeof(IDuplexChannel))
             {
                 //return (TChannel)(object)new SecurityDuplexChannel(this, this.securityProtocolFactory, ((IChannelFactory<IDuplexChannel>)this.InnerChannelFactory).CreateChannel(address, via), address, via);
-                throw new NotImplementedException("SecurityDuplexChannel");
+                throw ExceptionHelper.PlatformNotSupported("SecurityChannelFactory.OnCreateChannel - SecurityDuplexChannel");
             }
             else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
             {
                 //return (TChannel)(object)new SecurityDuplexSessionChannel(this, this.securityProtocolFactory, ((IChannelFactory<IDuplexSessionChannel>)this.InnerChannelFactory).CreateChannel(address, via), address, via);
-                throw new NotImplementedException("SecurityDuplexSessionChannel");
+                throw ExceptionHelper.PlatformNotSupported("SecurityChannelFactory.OnCreateChannel - SecurityDuplexSessionChannel");
             }
             else if (typeof(TChannel) == typeof(IRequestChannel))
             {
                 //return (TChannel)(object)new SecurityRequestChannel(this, this.securityProtocolFactory, ((IChannelFactory<IRequestChannel>)this.InnerChannelFactory).CreateChannel(address, via), address, via);
-                throw new NotImplementedException("SecurityRequestChannel");
+                throw ExceptionHelper.PlatformNotSupported("SecurityChannelFactory.OnCreateChannel - SecurityRequestChannel");
             }
 
             //typeof(TChannel) == typeof(IRequestSessionChannel)
             //return (TChannel)(object)new SecurityRequestSessionChannel(this, this.securityProtocolFactory, ((IChannelFactory<IRequestSessionChannel>)this.InnerChannelFactory).CreateChannel(address, via), address, via);
-            throw new NotImplementedException("SecurityRequestSessionChannel");
+            throw ExceptionHelper.PlatformNotSupported("SecurityChannelFactory.OnCreateChannel - SecurityRequestSessionChannel");
         }
 
         protected override void OnOpen(TimeSpan timeout)
