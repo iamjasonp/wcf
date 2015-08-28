@@ -127,7 +127,7 @@ namespace System.ServiceModel
 
         private void CheckSettings()
         {
-#if FEATURE_NETNATIVE // In the Win8 profile, some settings for the binding security are not supported.
+#if FEATURE_NETNATIVE // In .NET Native, some settings for the binding security are not supported.
                       
             NetTcpSecurity security = this.Security;
             if (security == null)

@@ -235,18 +235,6 @@ namespace System.ServiceModel.Channels
 
             IChannelFactory<TChannel> result = this.BuildChannelFactoryCore<TChannel>(context);
 
-            // attach the ExtendedProtectionPolicy to the securityProtcolFactory so it will be 
-            // available when building the channel.
-#if FEATURE_CORECLR // ExtendedProtection
-            if (transportBindingElement != null)
-            {
-                SecurityChannelFactory<TChannel> scf = result as SecurityChannelFactory<TChannel>;
-                if (scf != null && scf.SecurityProtocolFactory != null)
-                {
-                    scf.SecurityProtocolFactory.ExtendedProtectionPolicy = transportBindingElement.GetProperty<ExtendedProtectionPolicy>(context);
-                }
-            }
-#endif
             return result;
         }
 

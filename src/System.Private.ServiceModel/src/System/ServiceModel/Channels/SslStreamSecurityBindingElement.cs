@@ -50,6 +50,20 @@ namespace System.ServiceModel.Channels
             }
         }
 
+        [DefaultValue(TransportDefaults.RequireClientCertificate)]
+        internal bool RequireClientCertificate
+        {
+            get
+            {
+                return _requireClientCertificate;
+            }
+            set
+            {
+                _requireClientCertificate = value;
+            }
+        }
+
+        [DefaultValue(TransportDefaults.SslProtocols)]
         public SslProtocols SslProtocols
         {
             get
@@ -63,18 +77,6 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        [DefaultValue(TransportDefaults.RequireClientCertificate)]
-        internal bool RequireClientCertificate
-        {
-            get
-            {
-                return _requireClientCertificate;
-            }
-            set
-            {
-                _requireClientCertificate = value;
-            }
-        }
 
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
@@ -133,6 +135,21 @@ namespace System.ServiceModel.Channels
         public override StreamUpgradeProvider BuildServerStreamUpgradeProvider(BindingContext context)
         {
             throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityBindingElementn.BuildServerStreamUpgradeProvider is not supported.");
+        }
+
+        internal override bool IsMatch(BindingElement b)
+        {
+            if (b == null)
+            {
+                return false;
+            }
+            SslStreamSecurityBindingElement ssl = b as SslStreamSecurityBindingElement;
+            if (ssl == null)
+            {
+                return false;
+            }
+
+            return _requireClientCertificate == ssl._requireClientCertificate && _sslProtocols == ssl._sslProtocols;
         }
     }
 }

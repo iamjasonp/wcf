@@ -31,7 +31,6 @@ namespace System.IdentityModel.Selectors
             }
             if (!CanValidateToken(token))
             {
-                // warning 56506: Parameter 'token' to this public method must be validated:  A null-dereference can occur here.
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenValidationException(SR.Format(SR.CannotValidateSecurityTokenType, this, token.GetType())));
             }
 

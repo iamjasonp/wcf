@@ -49,7 +49,7 @@ namespace System.IdentityModel.Selectors
             _includeWindowsGroups = includeWindowsGroups;
             _cloneHandle = cloneHandle;
         }
-#endif
+#endif // FEATURE_CORECLR
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {

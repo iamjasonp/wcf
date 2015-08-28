@@ -33,19 +33,20 @@ namespace System.ServiceModel.Channels
 #endif // FEATURE_CORECLR
         private bool _requireClientCertificate;
         private string _scheme;
-        private SslProtocols _sslProtocols = SslProtocols.Ssl2 | SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+        private SslProtocols _sslProtocols;
         private bool _enableChannelBinding;
 
-        private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenManager clientSecurityTokenManager, bool requireClientCertificate, string scheme, IdentityVerifier identityVerifier)
+        private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenManager clientSecurityTokenManager, bool requireClientCertificate, string scheme, IdentityVerifier identityVerifier, SslProtocols sslProtocols)
             : base(timeouts)
         {
             _identityVerifier = identityVerifier;
             _scheme = scheme;
             _clientSecurityTokenManager = clientSecurityTokenManager;
             _requireClientCertificate = requireClientCertificate;
+            _sslProtocols = sslProtocols;
         }
 
-        private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenProvider serverTokenProvider, bool requireClientCertificate, SecurityTokenAuthenticator clientCertificateAuthenticator, string scheme, IdentityVerifier identityVerifier)
+        private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenProvider serverTokenProvider, bool requireClientCertificate, SecurityTokenAuthenticator clientCertificateAuthenticator, string scheme, IdentityVerifier identityVerifier, SslProtocols sslProtocols)
             : base(timeouts)
         {
             _serverTokenProvider = serverTokenProvider;
@@ -53,6 +54,7 @@ namespace System.ServiceModel.Channels
             _clientCertificateAuthenticator = clientCertificateAuthenticator;
             _identityVerifier = identityVerifier;
             _scheme = scheme;
+            _sslProtocols = sslProtocols;
         }
 
         public static SslStreamSecurityUpgradeProvider CreateClientProvider(
@@ -71,7 +73,8 @@ namespace System.ServiceModel.Channels
                 tokenManager,
                 bindingElement.RequireClientCertificate,
                 context.Binding.Scheme,
-                bindingElement.IdentityVerifier);
+                bindingElement.IdentityVerifier,
+                bindingElement.SslProtocols);
         }
 
         public override EndpointIdentity Identity
@@ -625,15 +628,12 @@ namespace System.ServiceModel.Channels
                 clientCertificates.Add(_clientToken.Certificate);
                 selectionCallback = ClientCertificateSelectionCallback;
             }
-#endif
 
-#if FEATURE_CORECLR // X509Certificates
             SslStream sslStream = new SslStream(stream, false, this.ValidateRemoteCertificate, selectionCallback);
 
             try
             {
                 sslStream.AuthenticateAsClient(string.Empty, clientCertificates, _parent.SslProtocols, false);
-
             }
             catch (SecurityTokenValidationException tokenValidationException)
             {

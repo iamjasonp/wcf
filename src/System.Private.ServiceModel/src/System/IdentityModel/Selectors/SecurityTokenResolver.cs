@@ -3,14 +3,13 @@
 
 using System;
 using System.Collections.ObjectModel;
-using System.IdentityModel.Configuration;
 using System.IdentityModel.Tokens;
 using System.ServiceModel;
 using System.Xml;
 
 namespace System.IdentityModel.Selectors
 {
-    public abstract class SecurityTokenResolver : ICustomIdentityConfiguration
+    public abstract class SecurityTokenResolver
     {
         /// <summary>
         /// Load custom configuration from Xml

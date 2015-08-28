@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.IdentityModel.Configuration;
 using System.IdentityModel.Tokens;
 #if FEATURE_CORECLR
 using System.Security.Cryptography.X509Certificates;
@@ -11,7 +10,7 @@ using System.Text;
 
 namespace System.IdentityModel.Selectors
 {
-    public abstract class X509CertificateValidator : ICustomIdentityConfiguration
+    public abstract class X509CertificateValidator
     {
 #if FEATURE_CORECLR // X509Certificate
         private static X509CertificateValidator s_chainTrust;
