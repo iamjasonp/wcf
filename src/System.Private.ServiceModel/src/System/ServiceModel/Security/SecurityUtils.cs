@@ -247,7 +247,7 @@ namespace System.ServiceModel.Security
             {
                 if (s_anonymousIdentity == null)
                 {
-                    s_anonymousIdentity = SecurityUtils.CreateIdentity(String.Empty);
+                    s_anonymousIdentity = SecurityUtils.CreateIdentity(string.Empty);
                 }
                 return s_anonymousIdentity;
             }
@@ -321,7 +321,7 @@ namespace System.ServiceModel.Security
                     || sid.IsWellKnown(WellKnownSidType.LocalServiceSid)
                     || self.User.Value.StartsWith("S-1-5-82", StringComparison.OrdinalIgnoreCase));
         }
-#endif
+#endif // FEATURE_NETNATIVE
         internal static EndpointIdentity CreateWindowsIdentity(bool spnOnly)
         {
             EndpointIdentity identity = null;
@@ -634,7 +634,7 @@ namespace System.ServiceModel.Security
                 certs = store.Certificates.Find(findType, findValue, false);
                 if (certs.Count == 1)
                 {
-                    return new X509Certificate2(certs[0].RawData);
+                    return new X509Certificate2(certs[0].Handle);
                 }
                 if (throwIfMultipleOrNoMatch)
                 {
@@ -679,7 +679,6 @@ namespace System.ServiceModel.Security
                 }
             }
         }
-
 
         // This is the workaround, Since store.Certificates returns a full collection
         // of certs in store.  These are holding native resources.

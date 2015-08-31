@@ -21,7 +21,7 @@ namespace System.IdentityModel.Selectors
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
             }
 
-            _certificate = new X509Certificate2(certificate.RawData);
+            _certificate = new X509Certificate2(certificate.Handle);
         }
 
         public X509SecurityTokenProvider(StoreLocation storeLocation, StoreName storeName, X509FindType findType, object findValue)
@@ -46,7 +46,7 @@ namespace System.IdentityModel.Selectors
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.FoundMultipleCerts, storeName, storeLocation, findType, findValue)));
                 }
 
-                _certificate = new X509Certificate2(certificates[0].RawData);
+                _certificate = new X509Certificate2(certificates[0].Handle);
             }
             finally
             {

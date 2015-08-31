@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using System.IdentityModel.Policy;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
@@ -269,7 +270,7 @@ namespace System.ServiceModel.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
                     SR.InvalidTokenProvided, _serverTokenProvider.GetType(), typeof(X509SecurityToken))));
             }
-            _serverCertificate = new X509Certificate2(x509Token.Certificate.RawData);
+            _serverCertificate = new X509Certificate2(x509Token.Certificate.Handle);
         }
 #endif // FEATURE_CORECLR
 
@@ -410,11 +411,11 @@ namespace System.ServiceModel.Channels
             {
                 if (certificate == null)
                 {
-                    // TODO: Need to assert here, used to trace here. 
+                    Contract.Assert(certificate != null, "certificate MUST NOT be null"); 
                     return false;
                 }
                 // Note: add ref to handle since the caller will reset the cert after the callback return.
-                X509Certificate2 certificate2 = new X509Certificate2(((X509Certificate2)certificate).RawData);
+                X509Certificate2 certificate2 = new X509Certificate2(certificate.Handle);
                 _clientCertificate = certificate2;
                 try
                 {
@@ -674,7 +675,18 @@ namespace System.ServiceModel.Channels
         private bool ValidateRemoteCertificate(object sender, X509Certificate certificate, X509Chain chain,
             SslPolicyErrors sslPolicyErrors)
         {
-            throw ExceptionHelper.PlatformNotSupported("SslStreamSecurityUpgradeInitiator.ValidateRemoteCertificate");
+            // Note: add ref to handle since the caller will reset the cert after the callback return.
+            X509Certificate2 certificate2 = new X509Certificate2(certificate.Handle);
+            SecurityToken token = new X509SecurityToken(certificate2, false);
+            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _serverCertificateAuthenticator.ValidateToken(token);
+            _serverSecurity = new SecurityMessageProperty();
+            _serverSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
+            _serverSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
+
+            AuthorizationContext authzContext = _serverSecurity.ServiceSecurityContext.AuthorizationContext;
+            _parent.IdentityVerifier.EnsureOutgoingIdentity(this.RemoteAddress, this.Via, authzContext);
+
+            return true;
         }
 #endif
     }

@@ -53,7 +53,7 @@ namespace System.IdentityModel.Tokens
 
             _id = id;
 
-            _certificate = clone ? new X509Certificate2(certificate.RawData) : certificate;
+            _certificate = clone ? new X509Certificate2(certificate.Handle) : certificate;
             // if the cert needs to be cloned then the token owns the clone and should dispose it
             _disposable = clone || disposable;
         }
