@@ -32,4 +32,4 @@ namespace System.ServiceModel.Security
         }
     }
 }
-#endif 
+#endif // FEATURE_CORECLR

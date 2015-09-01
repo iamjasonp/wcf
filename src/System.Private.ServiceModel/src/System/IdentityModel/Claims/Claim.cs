@@ -6,9 +6,9 @@ using System.Globalization;
 using System.Runtime;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
-#if FEATURE_CORECLR
+#if FEATURE_CORECLR // X509Certificates
 using System.Security.Cryptography.X509Certificates;
-#endif
+#endif // FEATURE_CORECLR
 using System.Security.Principal;
 using System.ServiceModel;
 
@@ -163,7 +163,7 @@ namespace System.IdentityModel.Claims
             return new Claim(ClaimTypes.Uri, uri, Rights.PossessProperty);
         }
 
-#if FEATURE_CORECLR 
+#if FEATURE_CORECLR // X509Certificates
         public static Claim CreateX500DistinguishedNameClaim(X500DistinguishedName x500DistinguishedName)
         {
             if (x500DistinguishedName == null)
@@ -171,7 +171,7 @@ namespace System.IdentityModel.Claims
 
             return new Claim(ClaimTypes.X500DistinguishedName, x500DistinguishedName, Rights.PossessProperty, ClaimComparer.X500DistinguishedName);
         }
-#endif 
+#endif // FEATURE_CORECLR
 
         public override bool Equals(object obj)
         {

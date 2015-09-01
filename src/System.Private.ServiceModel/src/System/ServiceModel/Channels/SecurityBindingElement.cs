@@ -4,9 +4,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Security;
-#if FEATURE_CORECLR // ExtendedProtection
-using System.Security.Authentication.ExtendedProtection;
-#endif
 using System.ServiceModel.Security;
 using System.ServiceModel.Security.Tokens;
 using System.Text;

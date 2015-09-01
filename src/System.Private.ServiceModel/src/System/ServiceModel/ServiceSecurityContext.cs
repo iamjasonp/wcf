@@ -80,6 +80,7 @@ namespace System.ServiceModel
                 return _identityClaim;
             }
         }
+
         public IIdentity PrimaryIdentity
         {
             get

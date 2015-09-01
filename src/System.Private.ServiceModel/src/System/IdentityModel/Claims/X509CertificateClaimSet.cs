@@ -1,14 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#if FEATURE_CORECLR
+#if FEATURE_CORECLR // X509Certificates
 using System.Collections.Generic;
 using System.IdentityModel.Policy;
 using System.Security.Claims;
 using System.Security.Cryptography;
-#if FEATURE_CORECLR
 using System.Security.Cryptography.X509Certificates;
-#endif // FEATURE_CORECLR
 using System.Security.Principal;
 using System.ServiceModel;
 

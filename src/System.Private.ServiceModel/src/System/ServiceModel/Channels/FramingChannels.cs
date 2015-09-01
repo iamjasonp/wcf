@@ -277,7 +277,6 @@ namespace System.ServiceModel.Channels
             await tcs.Task;
             connection.EndWrite();
 
-            // TODO: need async path for this. 
             if (_upgrade != null)
             {
                 StreamUpgradeInitiator upgradeInitiator = _upgrade.CreateUpgradeInitiator(this.RemoteAddress, this.Via);

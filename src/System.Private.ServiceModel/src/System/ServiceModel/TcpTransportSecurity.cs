@@ -18,7 +18,6 @@ namespace System.ServiceModel
         private ProtectionLevel _protectionLevel;
         private SslProtocols _sslProtocols;
 
-
         public TcpTransportSecurity()
         {
             _clientCredentialType = DefaultClientCredentialType;

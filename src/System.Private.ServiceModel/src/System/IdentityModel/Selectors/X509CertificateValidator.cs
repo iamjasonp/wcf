@@ -77,8 +77,6 @@ namespace System.IdentityModel.Selectors
                 if (certificate == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
 
-                // TODO: check on this
-                // X509Chain chain = new X509Chain(_useMachineContext, _chainPolicyOID);
                 X509Chain chain = new X509Chain();
 
                 if (_chainPolicy != null)
@@ -108,7 +106,7 @@ namespace System.IdentityModel.Selectors
                 return String.Empty;
             }
         }
-#endif
+#endif // FEATURE_CORECLR
     }
 }
 

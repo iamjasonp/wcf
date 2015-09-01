@@ -25,7 +25,6 @@ namespace System.ServiceModel.Diagnostics
     {
         internal static void TraceIdentityVerificationSuccess(EventTraceActivity eventTraceActivity, EndpointIdentity identity, Claim claim, Type identityVerifier)
         {
-
         }
 
         internal static void TraceIdentityVerificationFailure(EndpointIdentity identity, AuthorizationContext authContext, Type identityVerifier)

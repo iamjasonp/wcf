@@ -240,7 +240,7 @@ namespace System.ServiceModel.Security
 
                     // Allow a Sid claim to support UPN, and SPN identities
                     
-                    // TODO: SID claims not available yet 
+                    // SID claims not available yet 
                     //SecurityIdentifier identitySid = null;
                     //if (ClaimTypes.Sid.Equals(identity.IdentityClaim.ClaimType))
                     //{

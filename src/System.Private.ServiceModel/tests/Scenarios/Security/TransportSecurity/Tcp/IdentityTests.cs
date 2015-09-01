@@ -7,7 +7,7 @@ namespace Security.TransportSecurity.Tests.Tcp
 {
     public static class IdentityTests
     {
-        //[Fact]
+        [Fact]
         [ActiveIssue(12)]
         [OuterLoop]
         // The product code will check the Dns identity from the server and throw if it does not match what is specified in DnsEndpointIdentity

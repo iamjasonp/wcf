@@ -68,14 +68,14 @@ namespace System.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                if (_securityKeys == null)
-                {
-                    throw ExceptionHelper.PlatformNotSupported("X509SecurityToken.SecurityKeys");
-                    // List<SecurityKey> temp = new List<SecurityKey>(1);
-                    // temp.Add(new X509AsymmetricSecurityKey(_certificate));
-                    // _securityKeys = temp.AsReadOnly();
-                }
-                return _securityKeys;
+                throw ExceptionHelper.PlatformNotSupported("X509SecurityToken.SecurityKeys");
+                //if (_securityKeys == null)
+                //{
+                //    List<SecurityKey> temp = new List<SecurityKey>(1);
+                //    temp.Add(new X509AsymmetricSecurityKey(_certificate));
+                //    _securityKeys = temp.AsReadOnly();
+                //}
+                //return _securityKeys;
             }
         }
 
@@ -130,4 +130,4 @@ namespace System.IdentityModel.Tokens
         }
     }
 }
-#endif
+#endif // FEATURE_CORECLR

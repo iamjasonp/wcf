@@ -25,11 +25,6 @@ public static class Tcp_ClientCredentialTypeTests
         {
             NetTcpBinding binding = new NetTcpBinding();
 
-            binding.SendTimeout = TimeSpan.FromMinutes(60);
-            binding.ReceiveTimeout = TimeSpan.FromMinutes(90);
-            binding.OpenTimeout = TimeSpan.FromMinutes(120);
-            binding.CloseTimeout = TimeSpan.FromMinutes(180);
-
             ChannelFactory<IWcfService> factory = new ChannelFactory<IWcfService>(binding, new EndpointAddress(Endpoints.Tcp_DefaultBinding_Address));
             IWcfService serviceProxy = factory.CreateChannel();
 
@@ -54,8 +49,7 @@ public static class Tcp_ClientCredentialTypeTests
     }
 
     // Simple echo of a string using NetTcpBinding on both client and server with all default settings.
-    //[Fact]
-    [ActiveIssue(81)]
+    [Fact]
     [OuterLoop]
     public static void SameBinding_SecurityModeNone_EchoString()
     {
@@ -91,8 +85,7 @@ public static class Tcp_ClientCredentialTypeTests
     }
 
     // Simple echo of a string using NetTcpBinding on both client and server with SecurityMode=Transport
-    //[Fact]
-    [ActiveIssue(81)]
+    [Fact]
     [OuterLoop]
     public static void SameBinding_SecurityModeTransport_EchoString()
     {
@@ -129,7 +122,6 @@ public static class Tcp_ClientCredentialTypeTests
 
     // Simple echo of a string using NetTcpBinding on both client and server with SecurityMode=Transport
     [Fact]
-    // [ActiveIssue(81)]
     [OuterLoop]
     public static void SameBinding_SecurityModeTransport_ClientCredentialTypeCertificate_EchoString()
     {

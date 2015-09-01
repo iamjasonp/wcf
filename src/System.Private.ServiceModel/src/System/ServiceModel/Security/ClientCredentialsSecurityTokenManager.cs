@@ -128,7 +128,6 @@ namespace System.ServiceModel
             return result;
         }
 
-
         public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
         {
             // not referenced anywhere in current code, but must implement abstract. 

@@ -127,7 +127,7 @@ namespace System.ServiceModel
 
         private void CheckSettings()
         {
-#if FEATURE_NETNATIVE // In .NET Native, some settings for the binding security are not supported.
+#if FEATURE_NETNATIVE // In .NET Native, some settings for the binding security are not supported; this check is not necessary for CoreCLR
                       
             NetTcpSecurity security = this.Security;
             if (security == null)
@@ -166,7 +166,7 @@ namespace System.ServiceModel
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Transport.ClientCredentialType", transport.ClientCredentialType)));
             }
-#endif
+#endif // FEATURE_NETNATIVE
         }
 
         public override BindingElementCollection CreateBindingElements()

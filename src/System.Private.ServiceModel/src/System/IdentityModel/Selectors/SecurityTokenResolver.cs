@@ -11,20 +11,6 @@ namespace System.IdentityModel.Selectors
 {
     public abstract class SecurityTokenResolver
     {
-        /// <summary>
-        /// Load custom configuration from Xml
-        /// </summary>
-        /// <param name="nodelist">Custom configuration elements</param>
-        public virtual void LoadCustomConfiguration(XmlNodeList nodelist)
-        {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(NotImplemented.ByDesignWithMessage(SR.Format(SR.ID0023, this.GetType().AssemblyQualifiedName)));
-        }
-
-        public static SecurityTokenResolver CreateDefaultSecurityTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
-        {
-            return new SimpleTokenResolver(tokens, canMatchLocalId);
-        }
-
         private class SimpleTokenResolver : SecurityTokenResolver
         {
             private ReadOnlyCollection<SecurityToken> _tokens;

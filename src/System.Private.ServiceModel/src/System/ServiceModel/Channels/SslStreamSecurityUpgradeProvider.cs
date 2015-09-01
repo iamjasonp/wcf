@@ -205,7 +205,7 @@ namespace System.ServiceModel.Channels
 
             return sslupgradeAcceptor.ChannelBinding;
         }
-#endif
+#endif // FEATURE_CORECLR
 
         void IChannelBindingProvider.EnableChannelBindingSupport()
         {
@@ -276,7 +276,7 @@ namespace System.ServiceModel.Channels
 
         private void CleanupServerCertificate()
         {
-#if FEATURE_CORECLR
+#if FEATURE_CORECLR // X509Certificates
             if (_serverCertificate != null)
             {
                 _serverCertificate.Dispose();
@@ -290,7 +290,7 @@ namespace System.ServiceModel.Channels
             using (CancellationTokenSource cts = new CancellationTokenSource(timeout))
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-#if FEATURE_CORECLR
+#if FEATURE_CORECLR // X509Certificates
                 SecurityUtils.OpenTokenAuthenticatorIfRequired(this.ClientCertificateAuthenticator, timeoutHelper.RemainingTime());
 
                 if (_serverTokenProvider != null)
@@ -563,12 +563,12 @@ namespace System.ServiceModel.Channels
             if (_clientCertificateProvider != null)
             {
                 SecurityUtils.OpenTokenProviderIfRequired(_clientCertificateProvider, timeoutHelper.RemainingTime());
-#if FEATURE_CORECLR
+#if FEATURE_CORECLR  // X509Certificates
                 using (CancellationTokenSource cts = new CancellationTokenSource(timeoutHelper.RemainingTime()))
                 {
                     _clientToken = (X509SecurityToken)_clientCertificateProvider.GetTokenAsync(cts.Token).GetAwaiter().GetResult();
                 }
-#endif
+#endif // FEATURE_CORECLR
             }
         }
 
@@ -665,7 +665,7 @@ namespace System.ServiceModel.Channels
 #endif // FEATURE_CORECLR
         }
 
-#if FEATURE_CORECLR
+#if FEATURE_CORECLR // X509Certificates
         private static X509Certificate SelectClientCertificate(object sender, string targetHost,
             X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
         {
@@ -688,6 +688,6 @@ namespace System.ServiceModel.Channels
 
             return true;
         }
-#endif
+#endif // FEATURE_CORECLR
     }
 }

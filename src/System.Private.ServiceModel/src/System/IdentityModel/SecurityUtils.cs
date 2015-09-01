@@ -267,7 +267,7 @@ namespace System.IdentityModel
             str.Append("; ");
             str.Append(certificate.Thumbprint);
         }
-#endif  
+#endif // FEATURE_CORECLR
 
         internal static ReadOnlyCollection<IAuthorizationPolicy> CloneAuthorizationPoliciesIfNecessary(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {

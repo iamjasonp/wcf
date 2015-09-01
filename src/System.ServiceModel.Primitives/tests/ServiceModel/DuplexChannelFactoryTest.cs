@@ -142,7 +142,8 @@ public class DuplexChannelFactoryTest
         EndpointAddress endpoint = new EndpointAddress("net.tcp://not-an-endpoint");
 
         DuplexChannelFactory<IWcfDuplexService> factory = new DuplexChannelFactory<IWcfDuplexService>(context, binding, endpoint);
-        factory.CreateChannel();
+        IWcfDuplexService proxy = factory.CreateChannel();
+        Assert.NotNull(proxy);
     }
 
     [Fact]

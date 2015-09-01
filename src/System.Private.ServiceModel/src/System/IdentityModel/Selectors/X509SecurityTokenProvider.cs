@@ -71,4 +71,4 @@ namespace System.IdentityModel.Selectors
         }
     }
 }
-#endif
+#endif // FEATURE_CORECLR
