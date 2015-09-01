@@ -4,6 +4,8 @@
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Security;
+using WcfTestBridgeCommon;
 
 namespace WcfService.TestResources
 {
@@ -20,13 +22,20 @@ namespace WcfService.TestResources
                 );
         }
 
-        protected override void ModifyHost(ServiceHost serviceHost)
+        protected override void ModifyHost(ServiceHost serviceHost, ResourceRequestContext context)
         {
+            // Ensure the https certificate is installed before this endpoint resource is used
+            CertificateManager.InstallMyCertificate(context.BridgeConfiguration,
+                                                    context.BridgeConfiguration.BridgeHttpsCertificate);
+
+            string certThumbprint = HttpsResource.EnsureHttpsCertificateInstalled(context.BridgeConfiguration);
+
             serviceHost.Credentials.ServiceCertificate.SetCertificate(StoreLocation.LocalMachine,
                                                       StoreName.My,
                                                       X509FindType.FindByThumbprint,
                                                       certThumbprint);
-        }
 
+            serviceHost.Credentials.ClientCertificate.Authentication.CertificateValidationMode = X509CertificateValidationMode.None;
+        }
     }
 }

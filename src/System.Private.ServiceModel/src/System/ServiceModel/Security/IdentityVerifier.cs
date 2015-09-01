@@ -157,8 +157,7 @@ namespace System.ServiceModel.Security
  
                 if (identity == null)
                 {
-                    // DnsIdentity is not supported yet, don't return anything here.
-                    // identity = this.TryCreateDnsIdentity(reference);
+                    identity = this.TryCreateDnsIdentity(reference);
                 }
  
                 if (identity == null)
@@ -171,6 +170,16 @@ namespace System.ServiceModel.Security
                     SecurityTraceRecordHelper.TraceIdentityDeterminationSuccess(reference, identity, typeof(DefaultIdentityVerifier));
                     return true;
                 }
+            }
+
+            EndpointIdentity TryCreateDnsIdentity(EndpointAddress reference)
+            {
+                Uri toAddress = reference.Uri;
+
+                if (!toAddress.IsAbsoluteUri)
+                    return null;
+
+                return EndpointIdentity.CreateDnsIdentity(toAddress.DnsSafeHost);
             }
 
             internal Claim CheckDnsEquivalence(ClaimSet claimSet, string expectedSpn)
@@ -228,41 +237,44 @@ namespace System.ServiceModel.Security
                             return true;
                         }
                     }
+
                     // Allow a Sid claim to support UPN, and SPN identities
-                    SecurityIdentifier identitySid = null;
-                    if (ClaimTypes.Sid.Equals(identity.IdentityClaim.ClaimType))
-                    {
-                        throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Sid");
-                    }
-                    else if (ClaimTypes.Upn.Equals(identity.IdentityClaim.ClaimType))
-                    {
-                        throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Upn");
-                    }
-                    else if (ClaimTypes.Spn.Equals(identity.IdentityClaim.ClaimType))
-                    {
-                        throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Spn");
-                    }
-                    else if (ClaimTypes.Dns.Equals(identity.IdentityClaim.ClaimType))
-                    {
-                        throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Dns");
-                    }
-                    if (identitySid != null)
-                    {
-                        Claim claim = CheckSidEquivalence(identitySid, claimSet);
-                        if (claim != null)
-                        {
-                            SecurityTraceRecordHelper.TraceIdentityVerificationSuccess(eventTraceActivity, identity, claim, this.GetType());
-                            return true;
-                        }
-                    }
+                    
+                    // TODO: SID claims not available yet 
+                    //SecurityIdentifier identitySid = null;
+                    //if (ClaimTypes.Sid.Equals(identity.IdentityClaim.ClaimType))
+                    //{
+                    //    throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Sid");
+                    //}
+                    //else if (ClaimTypes.Upn.Equals(identity.IdentityClaim.ClaimType))
+                    //{
+                    //    throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Upn");
+                    //}
+                    //else if (ClaimTypes.Spn.Equals(identity.IdentityClaim.ClaimType))
+                    //{
+                    //    throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Spn");
+                    //}
+                    //else if (ClaimTypes.Dns.Equals(identity.IdentityClaim.ClaimType))
+                    //{
+                    //    throw ExceptionHelper.PlatformNotSupported("DefaultIdentityVerifier - ClaimTypes.Dns");
+                    //}
+                    //if (identitySid != null)
+                    //{
+                    //    Claim claim = CheckSidEquivalence(identitySid, claimSet);
+                    //    if (claim != null)
+                    //    {
+                    //        SecurityTraceRecordHelper.TraceIdentityVerificationSuccess(eventTraceActivity, identity, claim, this.GetType());
+                    //        return true;
+                    //    }
+                    //}
                 }
                 SecurityTraceRecordHelper.TraceIdentityVerificationFailure(identity, authContext, this.GetType());
                 if (TD.SecurityIdentityVerificationFailureIsEnabled())
                 {
                     TD.SecurityIdentityVerificationFailure(eventTraceActivity);
                 }
- 
-                return false;
+
+                return false; 
             }
         }
     }
