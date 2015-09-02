@@ -367,7 +367,7 @@ namespace System.IdentityModel
                 identities.Add(_policy.PrimaryIdentity);
                 properties.Add(SecurityUtils.Identities, identities);
             }
-            // Might need to port ReadOnlyDictionary?
+            
             _properties = properties;
         }
 

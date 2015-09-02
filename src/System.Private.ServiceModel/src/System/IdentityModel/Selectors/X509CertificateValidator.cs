@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.Contracts;
 using System.IdentityModel.Tokens;
 #if FEATURE_CORECLR
 using System.Security.Cryptography.X509Certificates;
@@ -67,6 +68,8 @@ namespace System.IdentityModel.Selectors
 
             public ChainTrustValidator(bool useMachineContext, X509ChainPolicy chainPolicy, uint chainPolicyOID)
             {
+                Contract.Assert(useMachineContext == false, "CoreCLR does not have ctor allowing useMachineContext = true");
+
                 _useMachineContext = useMachineContext;
                 _chainPolicy = chainPolicy;
                 _chainPolicyOID = chainPolicyOID;
@@ -77,7 +80,9 @@ namespace System.IdentityModel.Selectors
                 if (certificate == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
 
-                X509Chain chain = new X509Chain();
+                // implies _useMachineContext = false
+                // ctor for X509Chain(_useMachineContext, _chainPolicyOID) not present in CoreCLR
+                X509Chain chain = new X509Chain(); 
 
                 if (_chainPolicy != null)
                 {

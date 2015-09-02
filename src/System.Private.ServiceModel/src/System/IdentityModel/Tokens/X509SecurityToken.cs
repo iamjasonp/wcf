@@ -13,7 +13,7 @@ namespace System.IdentityModel.Tokens
     {
         private string _id;
         private X509Certificate2 _certificate;
-        private ReadOnlyCollection<SecurityKey> _securityKeys;
+        // private ReadOnlyCollection<SecurityKey> _securityKeys;
         private DateTime _effectiveTime = SecurityUtils.MaxUtcDateTime;
         private DateTime _expirationTime = SecurityUtils.MinUtcDateTime;
         private bool _disposed = false;
