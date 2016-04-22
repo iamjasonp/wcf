@@ -5,9 +5,7 @@
 
 // This script is called to prepare a local repo for testing
 // ASSUMES: 
-//   - Git is installed on the system to "C:\Program Files\Git\cmd\git.exe"
-//   - IIS web site points to this script
-//   - This script is committed to ./src/System.Private.ServiceModel/tools/PRService
+//   - web.config or environment variables are configured with the git executable path, and repo base path
 //   - 
 //   - The Git repo is set up as follows: 
 //     [remote "origin"]
@@ -15,7 +13,7 @@
 //         fetch = +refs/heads/*:refs/remotes/origin/*
 //         fetch = +refs/pull/*/head:refs/remotes/origin/pr/*      <-- allows us to run git checkout pr/{id} 
 //
-// We also support checking out branches, but we limit the the branches we can check out
+// We also support checking out branches, and we check the input against the list of branches using 'git branch --list --remote'
 
 using System;
 using System.Collections.Generic;
@@ -67,8 +65,7 @@ public class PullRequestHandler : IHttpHandler
         string branchString = context.Request.QueryString["branch"];
         string prString = context.Request.QueryString["pr"];
 
-        uint repoId;
-        if (string.IsNullOrWhiteSpace(repoIdString) || !uint.TryParse(repoIdString, out repoId))
+        if (string.IsNullOrWhiteSpace(repoIdString) || !ValidateDirectory(repoIdString))
         {
             context.Response.StatusCode = 400;
             context.Response.Write(string.Format("The client ID specified, '{0}', is invalid. Please specify a valid 'id' in the request query string <br/>", repoIdString ?? "unspecified"));
@@ -93,7 +90,7 @@ public class PullRequestHandler : IHttpHandler
         context.Response.Write(string.Format("branch = {0} <br/>", HttpUtility.HtmlEncode(branchString) ?? "unspecified"));
 
         // Check for prerequisites needed before this script can execute
-        string gitRepoPath = GetRepoPath(repoId);
+        string gitRepoPath = GetRepoPath(repoIdString);
         success = CheckPrerequisites(gitRepoPath, result);
 
         if (!success)
@@ -197,7 +194,7 @@ public class PullRequestHandler : IHttpHandler
         return success;
     }
 
-    private string GetRepoPath(uint repoId)
+    private string GetRepoPath(string repoId)
     {
         // Note: assumes configuration is read. 
         return string.Format(_gitRepoPathTemplate, _gitRepositoriesBasePath, repoId);
@@ -402,6 +399,29 @@ public class PullRequestHandler : IHttpHandler
         }
 
         _configurationRead = true;
+        return true;
+    }
+
+    private bool ValidateDirectory(string directoryName)
+    {
+        var length = directoryName.Length;
+
+        // Disallow "master" in directory name, it has a special meaning for us
+        if (string.Equals(directoryName, "master", StringComparison.OrdinalIgnoreCase)) return false; 
+
+        // Bound the length so we don't try to validate forever
+        // This should be long enough for what we need
+        if (length > 100) return false;
+
+        // Allow [A-Za-z0-9]*
+        for (int i = 0; i < length; i++)
+        {
+            if (directoryName[i] >= 'a' && directoryName[i] <= 'z') continue;
+            if (directoryName[i] >= 'A' && directoryName[i] <= 'Z') continue;
+            if (directoryName[i] >= '0' && directoryName[i] <= '9') continue;
+            return false;
+        }
+
         return true;
     }
 
