@@ -129,10 +129,15 @@ namespace System.IdentityModel.Selectors
                 DateTime now = DateTime.Now;
                 Contract.Assert(now.Kind == certificate.NotAfter.Kind && now.Kind == certificate.NotBefore.Kind, "");
 
+                exception = null;
+
+                Console.WriteLine("PeerTrustValidator: Building chain for certificate {0}", certificate.Thumbprint);
+
                 if (now > certificate.NotAfter || now < certificate.NotBefore)
                 {
                     exception = new SecurityTokenValidationException(SR.Format(SR.X509InvalidUsageTime,
                         SecurityUtils.GetCertificateId(certificate), now, certificate.NotBefore, certificate.NotAfter));
+                    Console.WriteLine("PeerTrustValidator: X509InvalidUsageTime");
                     return false;
                 }
 
@@ -140,6 +145,7 @@ namespace System.IdentityModel.Selectors
                 {
                     exception = new SecurityTokenValidationException(SR.Format(SR.X509IsNotInTrustedStore,
                         SecurityUtils.GetCertificateId(certificate)));
+                    Console.WriteLine("PeerTrustValidator: X509IsNotInTrustedStore");
                     return false;
                 }
 
@@ -147,8 +153,10 @@ namespace System.IdentityModel.Selectors
                 {
                     exception = new SecurityTokenValidationException(SR.Format(SR.X509IsInUntrustedStore,
                         SecurityUtils.GetCertificateId(certificate)));
+                    Console.WriteLine("PeerTrustValidator: X509IsInUntrustedStore");
                     return false;
                 }
+
                 exception = null;
                 return true;
             }
@@ -177,14 +185,14 @@ namespace System.IdentityModel.Selectors
                 if (certificate == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
 
-                // implies _useMachineContext = false
-                // ctor for X509Chain(_useMachineContext, _chainPolicyOID) not present in CoreCLR
                 X509Chain chain = new X509Chain();
 
                 if (_chainPolicy != null)
                 {
                     chain.ChainPolicy = _chainPolicy;
                 }
+
+                Console.WriteLine("ChainTrustValidator: Building chain for certificate {0}", certificate.Thumbprint);
 
                 if (!chain.Build(certificate))
                 {

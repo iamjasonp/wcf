@@ -132,6 +132,7 @@ namespace System.ServiceModel.Security
                     validator = X509CertificateValidator.CreatePeerOrChainTrustValidator(useMachineContext, chainPolicy);
                 }
             }
+
             return (validator != null);
         }
 
